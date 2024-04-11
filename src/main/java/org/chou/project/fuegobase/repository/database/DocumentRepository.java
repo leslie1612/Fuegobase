@@ -1,0 +1,17 @@
+package org.chou.project.fuegobase.repository.database;
+
+import org.chou.project.fuegobase.model.database.Document;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+public interface DocumentRepository extends JpaRepository<Document, Long> {
+
+    @Query(value = "SELECT id FROM collection WHERE project_id = :projectId AND name = :collectionName",
+            nativeQuery = true)
+    Long getCollectionId(@Param("projectId") long projectId, @Param("collectionName") String collectionName);
+}
