@@ -23,6 +23,7 @@ public class FieldController {
                             @PathVariable String collectionName,
                             @PathVariable String documentName,
                             @RequestBody FieldData fieldData) {
+
 //        String APIKey = authorization.split(" ")[1].trim();
         String APIKey = "aaa12345bbb";
 

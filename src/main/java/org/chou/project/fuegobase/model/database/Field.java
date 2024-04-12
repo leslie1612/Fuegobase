@@ -17,12 +17,15 @@ public class Field {
     @Column(name="document_id")
     private Long documentId;
 
-    @Column(name="field_type_id")
-    private int fieldTypeId;
+    @Column(name="key_type_id")
+    private int keyTypeId;
 
-    @Column(name="field_key_name")
-    private String fieldKey;
+    @Column(name="key_name")
+    private String keyName;
 
-    @Column(name="field_value")
-    private String fieldValue;
+    @Column(name="value_type_id")
+    private int valueTypeId;
+
+    @Column(name="value_name")
+    private String valueName;
 }

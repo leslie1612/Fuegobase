@@ -1,18 +1,19 @@
 package org.chou.project.fuegobase.data.database;
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
-public class FieldData {
+public class ValueInfoData {
 
-    private String type;
-
+    @Nullable
     private String key;
 
-    private List<ValueInfoData> valueInfo;
+    private String value;
+
+    @Nullable
+    private String type;
 
 }
