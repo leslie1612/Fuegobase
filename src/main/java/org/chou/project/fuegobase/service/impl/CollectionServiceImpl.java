@@ -7,6 +7,8 @@ import org.chou.project.fuegobase.service.CollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CollectionServiceImpl implements CollectionService {
 
@@ -33,4 +35,9 @@ public class CollectionServiceImpl implements CollectionService {
         collectionRepository.save(collection);
 
     }
+    @Override
+    public List<Collection> getCollections(String APIKey, String projectId) {
+            return collectionRepository.getCollectionsByProjectId(Long.parseLong(projectId));
+    }
+
 }

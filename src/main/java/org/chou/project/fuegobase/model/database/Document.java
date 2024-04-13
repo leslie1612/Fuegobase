@@ -18,6 +18,6 @@ public class Document {
     private String name;
 
     @Column(name="collection_id")
-    private Long collectionId;
+    private long collectionId;
 
 }

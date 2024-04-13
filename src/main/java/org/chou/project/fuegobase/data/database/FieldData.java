@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 public class FieldData {
 
     private String type;

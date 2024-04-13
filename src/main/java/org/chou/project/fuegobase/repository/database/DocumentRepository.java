@@ -11,7 +11,13 @@ import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-    @Query(value = "SELECT id FROM collection WHERE project_id = :projectId AND name = :collectionName",
-            nativeQuery = true)
-    Long getCollectionId(@Param("projectId") long projectId, @Param("collectionName") String collectionName);
+//    @Query(value = "SELECT id FROM collection WHERE project_id = :projectId AND name = :collectionName",
+//            nativeQuery = true)
+//    Long getCollectionId(@Param("projectId") long projectId, @Param("collectionName") String collectionName);
+
+    @Query(value = "SELECT d.id FROM document d JOIN collection c ON d.collection_id = c.id WHERE c.name = :collectionName AND d.name = :documentName AND c.project_id = :projectId", nativeQuery = true)
+    Long findDocumentId(@Param("projectId") long projectId, @Param("collectionName") String collectionName, @Param("documentName") String documentName);
+
+
+    List<Document> findDocumentsByCollectionId(@Param("collectionId") long collectionId);
 }

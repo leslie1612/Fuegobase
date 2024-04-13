@@ -7,6 +7,8 @@ import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProjectServiceImpl implements ProjectService {
 
@@ -19,6 +21,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void createProject(ProjectData projectData) {
+
+        // TODO API key 如何產生
         String APIKey = "aaa12345bbb";
 
         Project project = new Project();
@@ -28,5 +32,11 @@ public class ProjectServiceImpl implements ProjectService {
         project.setAPIKey(APIKey);
 
         projectRepository.save(project);
+    }
+
+    @Override
+    public List<Project> getProjects(long userId) {
+//         return projectRepository.getProjectsByUserId(userId).stream().map(ProjectDto::from).toList();
+         return projectRepository.getProjectsByUserId(userId);
     }
 }
