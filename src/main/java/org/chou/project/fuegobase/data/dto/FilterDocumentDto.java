@@ -5,24 +5,21 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.chou.project.fuegobase.data.database.ValueInfoData;
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FieldDto {
+public class FilterDocumentDto {
     @Id
-    @JsonProperty("id")
+    @JsonProperty("documentId")
     private long id;
 
-    @JsonProperty("key")
-    private String key;
+    @JsonProperty("documentName")
+    private String name;
 
-    @JsonProperty("type")
-    private String type;
+    @JsonProperty("field")
+    private List<FieldDto> fieldDtoList;
 
-    @JsonProperty("valueInfo")
-    private Object valueInfo;
 }

@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public class FieldProjectionRepositoryImpl implements FieldProjectionRepository{
+public class FieldProjectionRepositoryImpl implements FieldProjectionRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -22,6 +22,24 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository{
                 JOIN field_type ft ON v.value_type_id = ft.id 
                 WHERE k.document_id = %d
                 """;
-        return entityManager.createNativeQuery(query.formatted(documentId),FieldProjection.class).getResultList();
+        return entityManager.createNativeQuery(query.formatted(documentId), FieldProjection.class).getResultList();
+    }
+
+    @Override
+    public List<Long> getDocumentIdsByFilter(String keyName, String valueName, String type) {
+        String query = """
+                SELECT d.id
+                FROM document d
+                JOIN field_key k ON d.id = k.document_id
+                JOIN field_value v ON k.id = v.field_key_id
+                JOIN field_type ft ON v.value_type_id = ft.id
+                WHERE k.name = ?1 AND v.value_name = ?2 AND ft.type_name = ?3
+                 """;
+
+        return entityManager.createNativeQuery(query, Long.class)
+                .setParameter(1, keyName)
+                .setParameter(2, valueName)
+                .setParameter(3, type)
+                .getResultList();
     }
 }

@@ -1,6 +1,7 @@
 package org.chou.project.fuegobase.service.impl;
 
 import org.chou.project.fuegobase.data.database.CollectionData;
+import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
 import org.chou.project.fuegobase.service.CollectionService;

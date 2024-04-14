@@ -1,11 +1,10 @@
 package org.chou.project.fuegobase.service.impl;
 
-import jakarta.persistence.Id;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.FieldData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
-import org.chou.project.fuegobase.model.database.Document;
+import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
@@ -83,7 +82,23 @@ public class FieldServiceImpl implements FieldService {
     public List<FieldDto> getFields(String APIKey, String projectId, String collectionName, String documentName) {
         long documentId = getDocumentId(projectId, collectionName, documentName);
         return mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(documentId));
+    }
 
+    @Override
+    public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId, String collectionName, String filter, String value, String type) {
+        List<Long> documentIdList = fieldKeyRepository.getDocumentIdsByFilter(filter, value, type);
+
+        List<FilterDocumentDto> result = new ArrayList<>();
+        for (Long documentId : documentIdList) {
+            FilterDocumentDto filterDocumentDto = new FilterDocumentDto();
+            filterDocumentDto.setId(documentId);
+            filterDocumentDto.setName(documentRepository.findNameById(documentId));
+            filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(documentId)));
+
+            result.add(filterDocumentDto);
+        }
+
+        return result;
     }
 
     public long getDocumentId(String projectId, String collectionName, String documentName) {
@@ -100,41 +115,37 @@ public class FieldServiceImpl implements FieldService {
 
         for (FieldProjection fieldProjection : fieldProjectionList) {
 
+            ValueInfoData valueInfoData = new ValueInfoData();
+            valueInfoData.setValue(fieldProjection.getValueName());
+
             fieldDtoList.forEach(fieldDto -> {
 
                 if (fieldProjection.getId() == fieldDto.getId()) {
 
-                    switch (fieldProjection.getKeyType()) {
+                    if (fieldProjection.getKeyType().equals("Array")) {
 
-                        case "String":
-                            fieldDto.setValue(fieldProjection.getValueName());
-                            break;
+                        valueInfoData.setType(fieldProjection.getValueType());
 
-                        case "Number":
-                            fieldDto.setValue(Integer.parseInt(fieldProjection.getValueName()));
-                            break;
+                        if (fieldDto.getValueInfo() == null) {
+                            fieldDto.setValueInfo(new ArrayList<>());
+                        }
+                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
 
-                        case "Boolean":
-                            fieldDto.setValue(Boolean.parseBoolean(fieldProjection.getValueName()));
-                            break;
+                    } else if (fieldProjection.getKeyType().equals("Map")) {
 
-                        case "Array":
-                            Object arrayValue = convertType(fieldProjection.getValueType(), fieldProjection.getValueName());
-                            if (fieldDto.getValue() == null) {
-                                fieldDto.setValue(new ArrayList<>());
-                            }
-                            ((List<Object>) fieldDto.getValue()).add(arrayValue);
-                            break;
+                        valueInfoData.setKey(fieldProjection.getKeyName());
+                        valueInfoData.setType(fieldProjection.getValueType());
 
-                        case "Map":
-                            Object mapValue = convertType(fieldProjection.getValueType(), fieldProjection.getValueName());
-                            if (fieldDto.getValue() == null) {
-                                fieldDto.setValue(new HashMap<>());
-                            }
-                            ((Map<String, Object>) fieldDto.getValue()).put(fieldProjection.getKeyName(), mapValue);
-//                            fieldDto.setValue(hashMap);
-                            break;
+                        if (fieldDto.getValueInfo() == null) {
+                            fieldDto.setValueInfo(new ArrayList<>());
+                        }
+                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
+
+                    } else {
+                        valueInfoData.setType(fieldProjection.getKeyType());
+                        fieldDto.setValueInfo(valueInfoData);
                     }
+
                 }
             });
         }
@@ -146,30 +157,23 @@ public class FieldServiceImpl implements FieldService {
     public List<FieldDto> addKeyInfo(List<FieldProjection> fieldProjectionList) {
 
         Map<String, List<FieldProjection>> groupedByProductId = fieldProjectionList.stream()
-                .collect(Collectors.groupingBy(fp -> fp.getId() + "-" + fp.getName()));
+                .collect(Collectors.groupingBy(fp -> fp.getId() + "-" + fp.getName() + "-" + fp.getKeyType()));
 
-        Set<String> idAndNameSet = groupedByProductId.keySet();
+        Set<String> keySet = groupedByProductId.keySet();
 
         ArrayList<FieldDto> fieldDtoList = new ArrayList<>();
-        for (String idAndName : idAndNameSet) {
+        for (String ks : keySet) {
             FieldDto fieldDto = new FieldDto();
 
-            String[] title = idAndName.split("-");
-            fieldDto.setId(Long.parseLong(title[0]));
-            fieldDto.setKeyName(title[1]);
+            String[] keyInfo = ks.split("-");
+            fieldDto.setId(Long.parseLong(keyInfo[0]));
+            fieldDto.setKey(keyInfo[1]);
+            fieldDto.setType(keyInfo[2]);
 
             fieldDtoList.add(fieldDto);
         }
         return fieldDtoList;
     }
 
-    public Object convertType(String type, String name) {
-        return switch (type) {
-            case "String" -> name;
-            case "Number" -> Long.valueOf(name);
-            case "Boolean" -> Boolean.valueOf(name);
-            default -> throw new IllegalArgumentException("Unsupported type: " + type);
-        };
-    }
 
 }

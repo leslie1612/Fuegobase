@@ -7,4 +7,10 @@ import java.util.List;
 
 public interface FieldProjectionRepository {
     List<FieldProjection> fetchAllFieldsByDocumentId(@Param("document_id") long documentId);
+
+    List<Long> getDocumentIdsByFilter(
+            @Param("name") String keyName,
+            @Param("value_name") String valueName,
+            @Param("type_name") String type
+    );
 }
