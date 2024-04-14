@@ -11,6 +11,7 @@ public interface CollectionService {
 
     List<Collection> getCollections(String APIKey, String projectId);
 
+    Collection updateCollectionById(String APIKey,String projectId,String collectionID,CollectionData collectionData);
 //    CollectionDto getDocumentsByCollectionId(String APIKey, String projectId, String collectionId);
 
 }

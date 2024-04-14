@@ -2,6 +2,7 @@ package org.chou.project.fuegobase.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.FieldData;
+import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
@@ -13,7 +14,6 @@ import org.chou.project.fuegobase.service.FieldService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,15 +41,15 @@ public class FieldServiceImpl implements FieldService {
     @Override
     @Transactional
     public void createField(String APIKey, String projectId,
-                            String collectionName, String documentName, FieldData fieldData) {
+                            String collectionId, String documentId, FieldData fieldData) {
         // TODO 驗證 APIKEY
 
         try {
-            long documentId = getDocumentId(projectId, collectionName, documentName);
+//            long documentId = getDocumentId(projectId, collectionName, documentName);
             FieldType fieldKeyType = getType(fieldData.getType());
 
             FieldKey fieldKey = new FieldKey();
-            fieldKey.setDocumentId(documentId);
+            fieldKey.setDocumentId(Long.parseLong(documentId));
             fieldKey.setFieldType(fieldKeyType);
             fieldKey.setName(fieldData.getKey());
 
@@ -79,9 +79,10 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public List<FieldDto> getFields(String APIKey, String projectId, String collectionName, String documentName) {
-        long documentId = getDocumentId(projectId, collectionName, documentName);
-        return mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(documentId));
+    public List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId) {
+//        long documentId = getDocumentId(projectId, collectionId, documentId);
+        return mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(Long.parseLong(documentId)));
+
     }
 
     @Override
@@ -101,9 +102,9 @@ public class FieldServiceImpl implements FieldService {
         return result;
     }
 
-    public long getDocumentId(String projectId, String collectionName, String documentName) {
-        return documentRepository.findDocumentId(Long.parseLong(projectId), collectionName, documentName);
-    }
+//    public long getDocumentId(String projectId, String collectionName, String documentName) {
+//        return documentRepository.findDocumentId(Long.parseLong(projectId), collectionName, documentName);
+//    }
 
     public FieldType getType(String type) {
         return fieldTypeRepository.findFieldTypeByTypeName(type);
@@ -117,6 +118,7 @@ public class FieldServiceImpl implements FieldService {
 
             ValueInfoData valueInfoData = new ValueInfoData();
             valueInfoData.setValue(fieldProjection.getValueName());
+            valueInfoData.setValueId(fieldProjection.getValueId());
 
             fieldDtoList.forEach(fieldDto -> {
 
@@ -173,6 +175,103 @@ public class FieldServiceImpl implements FieldService {
             fieldDtoList.add(fieldDto);
         }
         return fieldDtoList;
+    }
+
+    @Transactional
+    @Override
+    public FieldDto renameField(String APIKey,
+                                String projectId,
+                                String collectionId,
+                                String documentId,
+                                String fieldId,
+                                FieldKeyData updatedFieldKey) {
+        FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+        existingFieldKey.setName(updatedFieldKey.getName());
+        fieldKeyRepository.save(existingFieldKey);
+
+        List<FieldValue> fieldValueList = fieldValueRepository.findAllByFieldKey(existingFieldKey);
+        FieldDto fieldDto = new FieldDto();
+        fieldDto.setId(existingFieldKey.getId());
+        fieldDto.setKey(existingFieldKey.getName());
+        fieldDto.setType(existingFieldKey.getFieldType().getTypeName());
+
+        for (FieldValue fieldValue : fieldValueList) {
+            if (fieldDto.getValueInfo() == null) {
+                fieldDto.setValueInfo(new ArrayList<>());
+            }
+
+            ValueInfoData valueInfoData = new ValueInfoData();
+            valueInfoData.setValueId(fieldValue.getId());
+            valueInfoData.setKey(fieldValue.getKeyName());
+            valueInfoData.setType(fieldValue.getFieldType().getTypeName());
+            valueInfoData.setValue(fieldValue.getValueName());
+
+            ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
+        }
+
+        return fieldDto;
+    }
+
+    @Override
+    public FieldDto postField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, ValueInfoData valueInfoData) {
+        // with id -> update , no id -> add new
+        if (valueInfoData.getValueId() > 0) {
+            return updateField(fieldId, valueInfoData);
+        }else{
+            return insertNewData(fieldId, valueInfoData);
+        }
+    }
+
+    public FieldDto updateField(String fieldId, ValueInfoData valueInfoData) {
+        FieldValue existingFieldValue = fieldValueRepository.findById(valueInfoData.getValueId()).orElseThrow();
+        FieldKey fieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+
+        if (fieldKey.getFieldType().getTypeName().equals("Map")) {
+            existingFieldValue.setKeyName(valueInfoData.getKey());
+        }
+        existingFieldValue.setValueName(valueInfoData.getValue());
+        fieldValueRepository.save(existingFieldValue);
+
+        FieldDto fieldDto = new FieldDto();
+        fieldDto.setId(fieldKey.getId());
+        fieldDto.setKey(fieldKey.getName());
+        fieldDto.setType(fieldKey.getFieldType().getTypeName());
+        fieldDto.setValueInfo(existingFieldValue);
+
+        return mapFieldKeyAndValueToFieldDto(fieldKey, existingFieldValue);
+    }
+
+    public FieldDto insertNewData(String fieldId, ValueInfoData valueInfoData) {
+        FieldKey fieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+
+        FieldValue fieldValue = new FieldValue();
+        fieldValue.setFieldKey(fieldKey);
+        fieldValue.setKeyName(valueInfoData.getKey());
+        fieldValue.setValueName(valueInfoData.getValue());
+        fieldValue.setFieldType(fieldTypeRepository.findFieldTypeByTypeName(valueInfoData.getType()));
+
+        fieldValueRepository.save(fieldValue);
+
+        return mapFieldKeyAndValueToFieldDto(fieldKey, fieldValue);
+
+    }
+
+    public FieldDto mapFieldKeyAndValueToFieldDto(FieldKey fieldKey, FieldValue fieldValue) {
+
+        FieldDto fieldDto = new FieldDto();
+        fieldDto.setId(fieldKey.getId());
+        fieldDto.setKey(fieldKey.getName());
+        fieldDto.setType(fieldKey.getFieldType().getTypeName());
+
+        ValueInfoData valueInfoData = new ValueInfoData();
+        valueInfoData.setValueId(fieldValue.getId());
+        valueInfoData.setKey(fieldValue.getKeyName());
+        valueInfoData.setValue(fieldValue.getValueName());
+        valueInfoData.setType(fieldValue.getFieldType().getTypeName());
+
+        fieldDto.setValueInfo(valueInfoData);
+
+        return fieldDto;
     }
 
 

@@ -25,16 +25,16 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public void createDocument(String APIKey, String projectId, String collectionName, DocumentData documentData) {
+    public void createDocument(String APIKey, String projectId, String collectionId, DocumentData documentData) {
 
         // TODO 驗證 APIKEY
 
         try {
-            long collectionId = getCollectionId(projectId, collectionName);
+//            long collectionId = getCollectionId(projectId, collectionName);
 
             Document document = new Document();
             document.setName(documentData.getName());
-            document.setCollectionId(collectionId);
+            document.setCollectionId(Long.parseLong(collectionId));
 
             documentRepository.save(document);
         } catch (Exception e) {
@@ -44,13 +44,25 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<Document> getDocuments(String APIKey, String projectId, String collectionName) {
+    public List<Document> getDocuments(String APIKey, String projectId, String collectionId) {
 
-        long collectionId  = getCollectionId(projectId, collectionName);
-        return documentRepository.findDocumentsByCollectionId(collectionId);
+//        long collectionId  = getCollectionId(projectId, collectionName);
+        return documentRepository.findDocumentsByCollectionId(Long.parseLong(collectionId));
     }
 
-//    public Collection getCollection(String projectId, String collectionName) {
+    @Override
+    public Document updateDocumentById(String APIKey,
+                                             String projectId,
+                                             String CollectionID,
+                                             String documentId,
+                                             DocumentData updateDocument) {
+        Document existingDocument = documentRepository.findById(Long.parseLong(documentId)).orElseThrow();
+        existingDocument.setName(updateDocument.getName());
+        documentRepository.save(existingDocument);
+        return existingDocument;
+    }
+
+    //    public Collection getCollection(String projectId, String collectionName) {
 //        return collectionRepository.findCollection(Long.parseLong(projectId), collectionName);
 //    }
     public long getCollectionId(String projectId, String collectionName) {

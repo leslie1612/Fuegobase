@@ -6,6 +6,13 @@ import org.chou.project.fuegobase.model.database.Document;
 import java.util.List;
 
 public interface DocumentService {
-    void createDocument(String APIKey,String projectId, String collectionName, DocumentData documentData);
-    List<Document> getDocuments(String APIKey, String projectId, String collectionName);
+    void createDocument(String APIKey,String projectId, String collectionId, DocumentData documentData);
+    List<Document> getDocuments(String APIKey, String projectId, String collectionId);
+    Document updateDocumentById(
+            String APIKey,
+            String projectId,
+            String CollectionID,
+            String documentId,
+            DocumentData updatedDocument
+    );
 }

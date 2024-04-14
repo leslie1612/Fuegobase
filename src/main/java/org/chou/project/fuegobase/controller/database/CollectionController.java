@@ -23,17 +23,17 @@ public class CollectionController {
     @Autowired
     public CollectionController(CollectionService collectionService, FieldService fieldService) {
         this.collectionService = collectionService;
-        this.fieldService= fieldService;
+        this.fieldService = fieldService;
     }
 
     @PostMapping
-    public ResponseEntity<?> createProject(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                           @PathVariable String projectId,
-                                           @RequestBody CollectionData collectionData) {
+    public ResponseEntity<?> createCollection(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                              @PathVariable String projectId,
+                                              @RequestBody CollectionData collectionData) {
 //        String APIKey = authorization.split(" ")[1].trim();
         collectionService.createCollection(API_KEY, projectId, collectionData);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping
@@ -47,15 +47,25 @@ public class CollectionController {
 
     @GetMapping("/{collectionId}")
     public ResponseEntity<?> getFieldsByFilter(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                                                             @PathVariable String projectId,
-                                                                             @PathVariable String collectionId,
-                                                                             @RequestParam String filter,
-                                                                             @RequestParam String value,
-                                                                             @RequestParam String type) {
-
+                                               @PathVariable String projectId,
+                                               @PathVariable String collectionId,
+                                               @RequestParam String filter,
+                                               @RequestParam String value,
+                                               @RequestParam String type) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new GenericResponse<>(
                         fieldService.getFieldsByFilter(API_KEY, projectId, collectionId, filter, value, type)));
+    }
+
+    @PatchMapping("/{collectionId}")
+    public ResponseEntity<?> renameCollection(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                                @PathVariable String projectId,
+                                                @PathVariable String collectionId,
+                                                @RequestBody CollectionData updatedCollection
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(collectionService.updateCollectionById(API_KEY, projectId,collectionId,updatedCollection));
     }
 }

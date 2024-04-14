@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CollectionServiceImpl implements CollectionService {
@@ -36,9 +37,22 @@ public class CollectionServiceImpl implements CollectionService {
         collectionRepository.save(collection);
 
     }
+
     @Override
     public List<Collection> getCollections(String APIKey, String projectId) {
-            return collectionRepository.getCollectionsByProjectId(Long.parseLong(projectId));
+        return collectionRepository.getCollectionsByProjectId(Long.parseLong(projectId));
+    }
+
+    @Override
+    public Collection updateCollectionById(String APIKey,
+                                           String projectId,
+                                           String collectionId,
+                                           CollectionData updatedCollection) {
+        Collection existingCollection = collectionRepository.findById(Long.parseLong(collectionId)).orElseThrow();
+        existingCollection.setName(updatedCollection.getName());
+        collectionRepository.save(existingCollection);
+
+        return existingCollection;
     }
 
 }

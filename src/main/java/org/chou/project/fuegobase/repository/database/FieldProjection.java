@@ -17,6 +17,8 @@ public class FieldProjection {
 
     private String keyName;
 
+    private long valueId;
+
     private String valueName;
 
     private String valueType;
