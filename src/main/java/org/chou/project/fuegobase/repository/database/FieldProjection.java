@@ -11,6 +11,8 @@ public class FieldProjection {
 
     private long id;
 
+    private long documentId;
+
     private String name;
 
     private String keyType;

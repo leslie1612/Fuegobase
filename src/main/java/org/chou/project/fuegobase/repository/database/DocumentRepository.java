@@ -22,4 +22,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Query(value = "SELECT name FROM document WHERE id = :id", nativeQuery = true)
     String findNameById(@Param("id") long documentId);
+
+    @Query(value = "SELECT d.id, d.collection_id, d.name FROM document d JOIN collection c ON d.collection_id = c.id WHERE c.project_id = :pid AND c.id = :cid AND d.id = :did", nativeQuery = true)
+    Optional<Document> findDocumentByProjectIdAndCollectionAndId(@Param("pid") long projectId, @Param("cid") long collectionId, @Param("did") long documentId);
 }

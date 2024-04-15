@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface ProjectService {
     void createProject (ProjectData projectData);
-
     List<Project> getProjects(long userId);
+    void deleteProject(String APIKey, String projectID);
 }

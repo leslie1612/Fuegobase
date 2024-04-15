@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/databases/projects")
 public class ProjectController {
     private final ProjectService projectService;
+    private String API_KEY = "aaa12345bbb";
     @Autowired
     public ProjectController(ProjectService projectService) {
         this.projectService = projectService;
@@ -35,5 +36,12 @@ public class ProjectController {
                 .status(HttpStatus.OK)
                 .body(new GenericResponse<>(projectService.getProjects(userId)) );
 
+    }
+
+    @DeleteMapping("{projectId}")
+    public ResponseEntity<?> deleteProject(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                           @PathVariable("projectId") String projectId){
+        projectService.deleteProject(API_KEY,projectId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

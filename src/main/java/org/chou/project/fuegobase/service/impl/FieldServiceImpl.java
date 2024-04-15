@@ -6,6 +6,7 @@ import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
+import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
@@ -14,6 +15,7 @@ import org.chou.project.fuegobase.service.FieldService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,49 +46,47 @@ public class FieldServiceImpl implements FieldService {
                             String collectionId, String documentId, FieldData fieldData) {
         // TODO 驗證 APIKEY
 
-        try {
-//            long documentId = getDocumentId(projectId, collectionName, documentName);
-            FieldType fieldKeyType = getType(fieldData.getType());
 
-            FieldKey fieldKey = new FieldKey();
-            fieldKey.setDocumentId(Long.parseLong(documentId));
-            fieldKey.setFieldType(fieldKeyType);
-            fieldKey.setName(fieldData.getKey());
+        Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
+        FieldType fieldKeyType = getType(fieldData.getType());
 
-            FieldKey savedFieldKey = fieldKeyRepository.save(fieldKey);
+        FieldKey fieldKey = new FieldKey();
+        fieldKey.setDocumentId(document.getId());
+        fieldKey.setFieldType(fieldKeyType);
+        fieldKey.setName(fieldData.getKey());
 
-            List<ValueInfoData> valueInfoDataList = fieldData.getValueInfo();
-            for (ValueInfoData valueInfoData : valueInfoDataList) {
+        FieldKey savedFieldKey = fieldKeyRepository.save(fieldKey);
 
-                // if key type is string, number or boolean, value type is same as key type
-                if (valueInfoData.getType() == null) {
-                    valueInfoData.setType(fieldData.getType());
-                }
+        List<ValueInfoData> valueInfoDataList = fieldData.getValueInfo();
+        for (ValueInfoData valueInfoData : valueInfoDataList) {
 
-                FieldType fieldValueType = getType(valueInfoData.getType());
-
-                FieldValue fieldValue = new FieldValue();
-                fieldValue.setFieldKey(savedFieldKey);
-                fieldValue.setKeyName(valueInfoData.getKey());
-                fieldValue.setValueName(valueInfoData.getValue());
-                fieldValue.setFieldType(fieldValueType);
-
-                fieldValueRepository.save(fieldValue);
+            // if key type is string, number or boolean, value type is same as key type
+            if (valueInfoData.getType() == null) {
+                valueInfoData.setType(fieldData.getType());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            FieldType fieldValueType = getType(valueInfoData.getType());
+
+            FieldValue fieldValue = new FieldValue();
+            fieldValue.setFieldKey(savedFieldKey);
+            fieldValue.setKeyName(valueInfoData.getKey());
+            fieldValue.setValueName(valueInfoData.getValue());
+            fieldValue.setFieldType(fieldValueType);
+
+            fieldValueRepository.save(fieldValue);
         }
+
     }
 
     @Override
     public List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId) {
-//        long documentId = getDocumentId(projectId, collectionId, documentId);
-        return mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(Long.parseLong(documentId)));
+        Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
+        return mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
 
     }
 
     @Override
-    public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId, String collectionName, String filter, String value, String type) {
+    public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId, String collectionId, String filter, String value, String type) {
         List<Long> documentIdList = fieldKeyRepository.getDocumentIdsByFilter(filter, value, type);
 
         List<FilterDocumentDto> result = new ArrayList<>();
@@ -102,9 +102,6 @@ public class FieldServiceImpl implements FieldService {
         return result;
     }
 
-//    public long getDocumentId(String projectId, String collectionName, String documentName) {
-//        return documentRepository.findDocumentId(Long.parseLong(projectId), collectionName, documentName);
-//    }
 
     public FieldType getType(String type) {
         return fieldTypeRepository.findFieldTypeByTypeName(type);
@@ -159,7 +156,7 @@ public class FieldServiceImpl implements FieldService {
     public List<FieldDto> addKeyInfo(List<FieldProjection> fieldProjectionList) {
 
         Map<String, List<FieldProjection>> groupedByProductId = fieldProjectionList.stream()
-                .collect(Collectors.groupingBy(fp -> fp.getId() + "-" + fp.getName() + "-" + fp.getKeyType()));
+                .collect(Collectors.groupingBy(fp -> fp.getId() + "-" + fp.getDocumentId() + "-" + fp.getName() + "-" + fp.getKeyType()));
 
         Set<String> keySet = groupedByProductId.keySet();
 
@@ -169,8 +166,9 @@ public class FieldServiceImpl implements FieldService {
 
             String[] keyInfo = ks.split("-");
             fieldDto.setId(Long.parseLong(keyInfo[0]));
-            fieldDto.setKey(keyInfo[1]);
-            fieldDto.setType(keyInfo[2]);
+            fieldDto.setDocumentId(Long.parseLong(keyInfo[1]));
+            fieldDto.setKey(keyInfo[2]);
+            fieldDto.setType(keyInfo[3]);
 
             fieldDtoList.add(fieldDto);
         }
@@ -185,7 +183,9 @@ public class FieldServiceImpl implements FieldService {
                                 String documentId,
                                 String fieldId,
                                 FieldKeyData updatedFieldKey) {
-        FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+//        FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+        FieldKey existingFieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
+
         existingFieldKey.setName(updatedFieldKey.getName());
         fieldKeyRepository.save(existingFieldKey);
 
@@ -213,17 +213,24 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public FieldDto postField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, ValueInfoData valueInfoData) {
-        // with id -> update , no id -> add new
-        if (valueInfoData.getValueId() > 0) {
-            return updateField(fieldId, valueInfoData);
-        }else{
-            return insertNewData(fieldId, valueInfoData);
+    public void deleteField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, String valueId) {
+
+        if (valueId != null) {
+            findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
+            fieldValueRepository.deleteById(Long.parseLong(valueId));
+            log.info("Delete value by " + valueId + " successfully!");
+        } else {
+            findFieldKey(projectId, collectionId, documentId, fieldId);
+            fieldKeyRepository.deleteById(Long.parseLong(fieldId));
+            log.info("Delete field by " + fieldId + " successfully!");
         }
     }
 
-    public FieldDto updateField(String fieldId, ValueInfoData valueInfoData) {
-        FieldValue existingFieldValue = fieldValueRepository.findById(valueInfoData.getValueId()).orElseThrow();
+    @Override
+    public FieldDto updateField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, ValueInfoData valueInfoData) {
+        FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, String.valueOf(valueInfoData.getValueId()));
+//        FieldValue existingFieldValue = fieldValueRepository.findById(valueInfoData.getValueId()).orElseThrow();
+
         FieldKey fieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
 
         if (fieldKey.getFieldType().getTypeName().equals("Map")) {
@@ -232,17 +239,12 @@ public class FieldServiceImpl implements FieldService {
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-        FieldDto fieldDto = new FieldDto();
-        fieldDto.setId(fieldKey.getId());
-        fieldDto.setKey(fieldKey.getName());
-        fieldDto.setType(fieldKey.getFieldType().getTypeName());
-        fieldDto.setValueInfo(existingFieldValue);
-
         return mapFieldKeyAndValueToFieldDto(fieldKey, existingFieldValue);
     }
 
-    public FieldDto insertNewData(String fieldId, ValueInfoData valueInfoData) {
-        FieldKey fieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+    @Override
+    public FieldDto addFieldValue(String APIKey, String projectId, String collectionId, String documentId, String fieldId, String valueId, ValueInfoData valueInfoData) {
+        FieldKey fieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 
         FieldValue fieldValue = new FieldValue();
         fieldValue.setFieldKey(fieldKey);
@@ -253,25 +255,64 @@ public class FieldServiceImpl implements FieldService {
         fieldValueRepository.save(fieldValue);
 
         return mapFieldKeyAndValueToFieldDto(fieldKey, fieldValue);
-
     }
 
     public FieldDto mapFieldKeyAndValueToFieldDto(FieldKey fieldKey, FieldValue fieldValue) {
 
-        FieldDto fieldDto = new FieldDto();
-        fieldDto.setId(fieldKey.getId());
-        fieldDto.setKey(fieldKey.getName());
-        fieldDto.setType(fieldKey.getFieldType().getTypeName());
+        try{
+            FieldDto fieldDto = new FieldDto();
+            fieldDto.setId(fieldKey.getId());
+            fieldDto.setDocumentId(fieldKey.getDocumentId());
+            fieldDto.setKey(fieldKey.getName());
+            fieldDto.setType(fieldKey.getFieldType().getTypeName());
 
-        ValueInfoData valueInfoData = new ValueInfoData();
-        valueInfoData.setValueId(fieldValue.getId());
-        valueInfoData.setKey(fieldValue.getKeyName());
-        valueInfoData.setValue(fieldValue.getValueName());
-        valueInfoData.setType(fieldValue.getFieldType().getTypeName());
+            ValueInfoData valueInfoData = new ValueInfoData();
+            valueInfoData.setValueId(fieldValue.getId());
+            valueInfoData.setKey(fieldValue.getKeyName());
+            valueInfoData.setValue(fieldValue.getValueName());
+            valueInfoData.setType(fieldValue.getFieldType().getTypeName());
 
-        fieldDto.setValueInfo(valueInfoData);
+            fieldDto.setValueInfo(valueInfoData);
+            return fieldDto;
+        }catch (Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
 
-        return fieldDto;
+    }
+
+    public Document findDocumentByProjectIdAndCollectionAndId(String projectId, String collectionId, String documentId) {
+        return documentRepository.findDocumentByProjectIdAndCollectionAndId(
+                Long.parseLong(projectId), Long.parseLong(collectionId), Long.parseLong(documentId)).orElseThrow();
+
+    }
+
+    public FieldKey findFieldKey(String projectId, String collectionId, String documentId, String fieldId) {
+        int count = fieldKeyRepository.isFieldKeyExist(
+                Long.parseLong(projectId),
+                Long.parseLong(collectionId),
+                Long.parseLong(documentId),
+                Long.parseLong(fieldId)
+        );
+        if (count > 0) {
+            return fieldKeyRepository.findById(Long.parseLong(fieldId)).orElse(null);
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
+    public FieldValue findFieldValue(String projectId, String collectionId, String documentId, String fieldId, String valueId) {
+        int count = fieldValueRepository.isFieldValueExist(
+                Long.parseLong(projectId),
+                Long.parseLong(collectionId),
+                Long.parseLong(documentId),
+                Long.parseLong(fieldId),
+                Long.parseLong(valueId)
+        );
+        if (count > 0) {
+            return fieldValueRepository.findById(Long.parseLong(valueId)).orElse(null);
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
 

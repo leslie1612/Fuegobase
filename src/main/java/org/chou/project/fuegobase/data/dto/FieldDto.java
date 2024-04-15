@@ -17,6 +17,9 @@ public class FieldDto {
     @JsonProperty("id")
     private long id;
 
+    @JsonProperty("documentId")
+    private long documentId;
+
     @JsonProperty("key")
     private String key;
 

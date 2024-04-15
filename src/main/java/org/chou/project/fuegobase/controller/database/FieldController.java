@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.controller.database;
 
+import jakarta.websocket.server.PathParam;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.FieldData;
 import org.chou.project.fuegobase.data.database.FieldKeyData;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections/{collectionId}/documents/{documentId}/fields")
@@ -29,11 +32,15 @@ public class FieldController {
                                          @PathVariable String collectionId,
                                          @PathVariable String documentId,
                                          @RequestBody FieldData fieldData) {
+        try {
+            fieldService.createField(API_KEY, projectId, collectionId, documentId, fieldData);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field not found");
+        }
 
 //        String APIKey = authorization.split(" ")[1].trim();
-        fieldService.createField(API_KEY, projectId, collectionId, documentId, fieldData);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping
@@ -41,11 +48,13 @@ public class FieldController {
                                        @PathVariable String projectId,
                                        @PathVariable String collectionId,
                                        @PathVariable String documentId) {
-//        System.out.println(fieldService.getFields(API_KEY, projectId, collectionName, documentName));
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new GenericResponse<>(fieldService.getFields(API_KEY, projectId, collectionId, documentId)));
+        try {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new GenericResponse<>(fieldService.getFields(API_KEY, projectId, collectionId, documentId)));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field not found");
+        }
     }
 
     // update field info
@@ -62,21 +71,56 @@ public class FieldController {
 //                .body(new GenericResponse<>(fieldService.renameField(API_KEY, projectId, collectionId, documentId, fieldId, updateKeyData)));
 //    }
 
-    @PostMapping("/{fieldId}")
-    public ResponseEntity<?> postField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                       @PathVariable String projectId,
-                                       @PathVariable String collectionId,
-                                       @PathVariable String documentId,
-                                       @PathVariable String fieldId,
-                                       @RequestBody ValueInfoData valueInfoData) {
+    @PatchMapping("/{fieldId}")
+    public ResponseEntity<?> updateField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                         @PathVariable String projectId,
+                                         @PathVariable String collectionId,
+                                         @PathVariable String documentId,
+                                         @PathVariable String fieldId,
+                                         @RequestBody ValueInfoData valueInfoData) {
+        try {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new GenericResponse<>(fieldService.updateField(API_KEY, projectId, collectionId, documentId, fieldId, valueInfoData)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field not found");
+        }
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new GenericResponse<>(fieldService.postField(API_KEY, projectId, collectionId, documentId, fieldId, valueInfoData)));
+    @PostMapping("/{fieldId}")
+    public ResponseEntity<?> addFieldValue(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                           @PathVariable String projectId,
+                                           @PathVariable String collectionId,
+                                           @PathVariable String documentId,
+                                           @PathVariable String fieldId,
+                                           @RequestBody ValueInfoData valueInfoData,
+                                           @RequestParam(required = true) String valueId) {
+        try {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new GenericResponse<>(fieldService.addFieldValue(API_KEY, projectId, collectionId, documentId, fieldId, valueId, valueInfoData)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field value not found");
+        }
 
     }
-    // add new row of field which type is array or map
 
 
-    // update a value key or value value for one row of field
+    @DeleteMapping("/{fieldId}")
+    public ResponseEntity<?> deleteField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                         @PathVariable String projectId,
+                                         @PathVariable String collectionId,
+                                         @PathVariable String documentId,
+                                         @PathVariable String fieldId,
+                                         @RequestParam(required = false) String valueId) {
+        try {
+            fieldService.deleteField(API_KEY, projectId, collectionId, documentId, fieldId, valueId);
+            return ResponseEntity
+                    .status(HttpStatus.NO_CONTENT)
+                    .build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field not found");
+        }
+
+    }
 }

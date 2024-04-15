@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.DocumentData;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.model.database.Document;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class DocumentServiceImpl implements DocumentService {
 
@@ -28,45 +30,60 @@ public class DocumentServiceImpl implements DocumentService {
     public void createDocument(String APIKey, String projectId, String collectionId, DocumentData documentData) {
 
         // TODO 驗證 APIKEY
+        Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
 
-        try {
-//            long collectionId = getCollectionId(projectId, collectionName);
+        Document document = new Document();
+        document.setName(documentData.getName());
+        document.setCollectionId(c.getId());
 
-            Document document = new Document();
-            document.setName(documentData.getName());
-            document.setCollectionId(Long.parseLong(collectionId));
-
-            documentRepository.save(document);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        documentRepository.save(document);
     }
 
     @Override
     public List<Document> getDocuments(String APIKey, String projectId, String collectionId) {
 
-//        long collectionId  = getCollectionId(projectId, collectionName);
-        return documentRepository.findDocumentsByCollectionId(Long.parseLong(collectionId));
+//        long collectionId = getCollectionId(projectId, collectionName);
+        Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
+        return documentRepository.findDocumentsByCollectionId(c.getId());
     }
 
     @Override
     public Document updateDocumentById(String APIKey,
-                                             String projectId,
-                                             String CollectionID,
-                                             String documentId,
-                                             DocumentData updateDocument) {
-        Document existingDocument = documentRepository.findById(Long.parseLong(documentId)).orElseThrow();
+                                       String projectId,
+                                       String collectionId,
+                                       String documentId,
+                                       DocumentData updateDocument) {
+
+        Document existingDocument = findDocument(projectId, collectionId, documentId);
         existingDocument.setName(updateDocument.getName());
         documentRepository.save(existingDocument);
         return existingDocument;
     }
 
+    @Override
+    public void deleteDocument(String APIKey, String projectId, String collectionId, String documentId) {
+        findDocument(projectId, collectionId, documentId);
+        documentRepository.deleteById(Long.parseLong(documentId));
+        log.info("Delete document by : " + documentId + " successfully!");
+    }
+
     //    public Collection getCollection(String projectId, String collectionName) {
 //        return collectionRepository.findCollection(Long.parseLong(projectId), collectionName);
 //    }
-    public long getCollectionId(String projectId, String collectionName) {
-        return collectionRepository.findCollectionId(Long.parseLong(projectId), collectionName);
+//    public long getCollectionId(String projectId, String collectionId) {
+//        return collectionRepository.findCollectionId(Long.parseLong(projectId), collectionId);
+//    }
+
+    public Collection findCollectionByProjectIdAndId(String projectId, String collectionId) {
+        return collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
     }
+
+    public Document findDocument(String projectId, String collectionId, String documentId) {
+        return documentRepository.findDocumentByProjectIdAndCollectionAndId(
+                Long.parseLong(projectId),
+                Long.parseLong(collectionId),
+                Long.parseLong(documentId)).orElseThrow();
+    }
+
 
 }

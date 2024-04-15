@@ -22,6 +22,12 @@ public interface FieldService {
     FieldDto renameField(String APIKey, String projectId, String collectionId,
                      String documentId, String FieldId, FieldKeyData updatedFieldData);
 
-    FieldDto postField(String APIKey, String projectId, String collectionId,
-                         String documentId, String FieldId, ValueInfoData valueInfoData);
+    FieldDto updateField(String APIKey, String projectId, String collectionId,
+                         String documentId, String fieldId, ValueInfoData valueInfoData);
+
+    FieldDto addFieldValue(String APIKey, String projectId, String collectionId,
+                         String documentId, String fieldId, String valueId,ValueInfoData valueInfoData);
+
+    void deleteField(String APIKey, String projectId, String collectionId,
+                     String documentId,String fieldId, String valueId);
 }
