@@ -74,6 +74,8 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
+            addWriteNumber(1);
+
         }
 
     }
@@ -81,7 +83,9 @@ public class FieldServiceImpl implements FieldService {
     @Override
     public List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId) {
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
-        return mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
+        List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
+        addReadNumber(fieldDtoList.size());
+        return fieldDtoList;
 
     }
 
@@ -209,6 +213,8 @@ public class FieldServiceImpl implements FieldService {
             ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
         }
 
+        addReadNumber(1);
+        addWriteNumber(1);
         return fieldDto;
     }
 
@@ -224,6 +230,8 @@ public class FieldServiceImpl implements FieldService {
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             log.info("Delete field by " + fieldId + " successfully!");
         }
+        addReadNumber(1);
+        addWriteNumber(1);
     }
 
     @Override
@@ -238,6 +246,9 @@ public class FieldServiceImpl implements FieldService {
         }
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
+
+        addReadNumber(1);
+        addWriteNumber(1);
 
         return mapFieldKeyAndValueToFieldDto(fieldKey, existingFieldValue);
     }
@@ -254,12 +265,15 @@ public class FieldServiceImpl implements FieldService {
 
         fieldValueRepository.save(fieldValue);
 
+        addReadNumber(1);
+        addWriteNumber(1);
+
         return mapFieldKeyAndValueToFieldDto(fieldKey, fieldValue);
     }
 
     public FieldDto mapFieldKeyAndValueToFieldDto(FieldKey fieldKey, FieldValue fieldValue) {
 
-        try{
+        try {
             FieldDto fieldDto = new FieldDto();
             fieldDto.setId(fieldKey.getId());
             fieldDto.setDocumentId(fieldKey.getDocumentId());
@@ -274,7 +288,7 @@ public class FieldServiceImpl implements FieldService {
 
             fieldDto.setValueInfo(valueInfoData);
             return fieldDto;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
 
@@ -315,5 +329,12 @@ public class FieldServiceImpl implements FieldService {
         }
     }
 
+    public void addReadNumber(int times) {
+        log.info("read:" + times);
+    }
+
+    public void addWriteNumber(int times) {
+        log.info("write:" + times);
+    }
 
 }
