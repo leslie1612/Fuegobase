@@ -41,7 +41,6 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public List<Document> getDocuments(String APIKey, String projectId, String collectionId) {
-
 //        long collectionId = getCollectionId(projectId, collectionName);
         Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
         return documentRepository.findDocumentsByCollectionId(c.getId());

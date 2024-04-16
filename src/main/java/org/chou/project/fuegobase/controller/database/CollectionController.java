@@ -58,10 +58,14 @@ public class CollectionController {
                                                @RequestParam String filter,
                                                @RequestParam String value,
                                                @RequestParam String type) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new GenericResponse<>(
-                        fieldService.getFieldsByFilter(API_KEY, projectId, collectionId, filter, value, type)));
+//        try{
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new GenericResponse<>(fieldService.getFieldsByFilter(API_KEY, projectId, collectionId, filter, value, type)));
+//        }catch (Exception e){
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+//        }
+
     }
 
     @PatchMapping("/{collectionId}")

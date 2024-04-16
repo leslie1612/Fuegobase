@@ -22,28 +22,32 @@ public class DashBoardServiceImpl implements DashboardService {
     }
 
     @Override
-    public float getStorage(String projectId) {
-        float projectLength = projectRepository.countLengthOfProject(projectId);
-        System.out.println(projectLength);
-        float collectionsLength = dashboardRepository.countCollectionsLength(projectId);
-        System.out.println(collectionsLength);
-        float documentsLength = dashboardRepository.countDocumentsLength(projectId);
-        System.out.println(documentsLength);
-        float fieldKeysLength = dashboardRepository.countFieldKeysLength(projectId);
-        System.out.println(fieldKeysLength);
-        float fieldValueLength = dashboardRepository.countFieldValueLength(projectId);
-        System.out.println(fieldValueLength);
+    public float getStorage(long projectId) {
+        float projectSize = projectRepository.countSizeOfProject(projectId);
+        log.info("projectSize: " + projectSize);
 
-        float totalSizeInMb = (projectLength
-                + collectionsLength
-                + documentsLength
-                + fieldKeysLength
-                + fieldKeysLength
-                + fieldValueLength);
+        float collectionsSize = dashboardRepository.countCollectionsSize(projectId);
+        log.info("collectionsSize" + collectionsSize);
 
-        log.info("total size in mb: " + totalSizeInMb);
+        float documentsSize = dashboardRepository.countDocumentsSize(projectId);
+        log.info("collectionsSize" + documentsSize);
 
-        return totalSizeInMb;
+        float fieldKeysSize = dashboardRepository.countFieldKeysSize(projectId);
+        log.info("collectionsSize" + fieldKeysSize);
+
+        float fieldValueSize = dashboardRepository.countFieldValueSize(projectId);
+        log.info("fieldValueSize" + fieldValueSize);
+
+        float totalSizeInMB = (projectSize
+                + collectionsSize
+                + documentsSize
+                + fieldKeysSize
+                + fieldKeysSize
+                + fieldValueSize);
+
+        log.info("total size in MB: " + totalSizeInMB);
+
+        return totalSizeInMB;
 
     }
 

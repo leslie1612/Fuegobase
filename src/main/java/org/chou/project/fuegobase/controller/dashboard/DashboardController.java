@@ -19,8 +19,13 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
     @GetMapping("/storage/{id}")
-    public float getStorageData(@PathVariable("id") String projectId){
+    public float getStorageData(@PathVariable("id") long projectId){
         return dashboardService.getStorage(projectId);
+    }
+
+    @GetMapping("/collections/{id}")
+    public void getCollectionCount(@PathVariable("id") long projectId){
+
     }
 
 }

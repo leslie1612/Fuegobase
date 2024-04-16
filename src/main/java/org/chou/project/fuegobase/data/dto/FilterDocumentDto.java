@@ -13,13 +13,16 @@ import java.util.List;
 @NoArgsConstructor
 public class FilterDocumentDto {
     @Id
-    @JsonProperty("documentId")
+    @JsonProperty("id")
     private long id;
 
-    @JsonProperty("documentName")
+    @JsonProperty("collectionId")
+    private long collectionId;
+
+    @JsonProperty("name")
     private String name;
 
-    @JsonProperty("field")
+    @JsonProperty("fields")
     private List<FieldDto> fieldDtoList;
 
 }

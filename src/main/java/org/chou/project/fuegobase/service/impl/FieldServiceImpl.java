@@ -6,6 +6,7 @@ import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
+import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class FieldServiceImpl implements FieldService {
 
+    private CollectionRepository collectionRepository;
     private DocumentRepository documentRepository;
     private FieldTypeRepository fieldTypeRepository;
     private FieldKeyRepository fieldKeyRepository;
@@ -30,10 +32,12 @@ public class FieldServiceImpl implements FieldService {
 
 
     @Autowired
-    public FieldServiceImpl(DocumentRepository documentRepository,
+    public FieldServiceImpl(CollectionRepository collectionRepository,
+                            DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository,
                             FieldKeyRepository fieldKeyRepository,
                             FieldValueRepository fieldValueRepository) {
+        this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
         this.fieldKeyRepository = fieldKeyRepository;
@@ -91,21 +95,25 @@ public class FieldServiceImpl implements FieldService {
 
     @Override
     public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId, String collectionId, String filter, String value, String type) {
-        List<Long> documentIdList = fieldKeyRepository.getDocumentIdsByFilter(filter, value, type);
+        collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
+
+        List<Document> documents = fieldKeyRepository.getDocumentsByFilter(collectionId, filter, value, type);
 
         List<FilterDocumentDto> result = new ArrayList<>();
-        for (Long documentId : documentIdList) {
+
+        for (Document document : documents) {
             FilterDocumentDto filterDocumentDto = new FilterDocumentDto();
-            filterDocumentDto.setId(documentId);
-            filterDocumentDto.setName(documentRepository.findNameById(documentId));
-            filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(documentId)));
+            filterDocumentDto.setId(document.getId());
+            filterDocumentDto.setCollectionId(document.getCollectionId());
+            filterDocumentDto.setName(document.getName());
+            filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
+
+            addReadNumber(filterDocumentDto.getFieldDtoList().size());
 
             result.add(filterDocumentDto);
         }
-
         return result;
     }
-
 
     public FieldType getType(String type) {
         return fieldTypeRepository.findFieldTypeByTypeName(type);

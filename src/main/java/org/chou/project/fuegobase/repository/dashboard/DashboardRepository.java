@@ -11,49 +11,49 @@ public class DashboardRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public float countCollectionsLength(@Param("id") String projectId) {
-        String query = "SELECT SUM(LENGTH(name)+1) / 1024 FROM collection WHERE project_id = :projectId";
+    public float countCollectionsSize(@Param("id") long projectId) {
+        String query = "SELECT SUM(LENGTH(name) + 1) / 1024 FROM collection WHERE project_id = ?1";
         Query nativeQuery = entityManager.createNativeQuery(query);
-        nativeQuery.setParameter("projectId", Long.parseLong(projectId));
+        nativeQuery.setParameter(1, projectId);
         return ((Number) nativeQuery.getSingleResult()).floatValue();
     }
 
-    public float countDocumentsLength(@Param("id") String projectId) {
+    public float countDocumentsSize(@Param("id") long projectId) {
         String query = """
-                SELECT SUM(LENGTH(d.name)+1) / 1024
+                SELECT SUM(LENGTH(d.name) + 1) / 1024
                 FROM document d 
                 JOIN collection c ON d.collection_id = c.id 
-                WHERE c.project_id = :projectId
+                WHERE c.project_id = ?1
                 """;
         Query nativeQuery = entityManager.createNativeQuery(query);
-        nativeQuery.setParameter("projectId", Long.parseLong(projectId));
+        nativeQuery.setParameter(1, projectId);
         return ((Number) nativeQuery.getSingleResult()).floatValue();
     }
 
-    public float countFieldKeysLength(@Param("id") String projectId) {
+    public float countFieldKeysSize(@Param("id") long projectId) {
         String query = """
-                SELECT SUM(LENGTH(k.name)) / 1024
+                SELECT SUM(LENGTH(k.name) + 1) / 1024
                 FROM field_key k 
                 JOIN document d ON k.document_id = d.id 
                 JOIN collection c ON d.collection_id = c.id 
-                WHERE c.project_id = :projectId
+                WHERE c.project_id = ?1
                             """;
         Query nativeQuery = entityManager.createNativeQuery(query);
-        nativeQuery.setParameter("projectId", Long.parseLong(projectId));
+        nativeQuery.setParameter(1, projectId);
         return ((Number) nativeQuery.getSingleResult()).floatValue();
     }
 
-    public float countFieldValueLength(@Param("id") String projectId) {
+    public float countFieldValueSize(@Param("id") long projectId) {
         String query = """
-                SELECT SUM(LENGTH(COALESCE(v.key_name, '')) + LENGTH(COALESCE(v.value_name, ''))) / 1024 
+                SELECT SUM(LENGTH(COALESCE(v.key_name, '')) + LENGTH(COALESCE(v.value_name, '')) + 2) / 1024 
                 FROM field_value v 
                 JOIN field_key k ON v.field_key_id = k.id 
                 JOIN document d ON k.document_id = d.id 
                 JOIN collection c ON d.collection_id = c.id 
-                WHERE c.project_id = :projectId
+                WHERE c.project_id = ?1
                 """;
         Query nativeQuery = entityManager.createNativeQuery(query);
-        nativeQuery.setParameter("projectId", Long.parseLong(projectId));
+        nativeQuery.setParameter(1, projectId);
         return ((Number) nativeQuery.getSingleResult()).floatValue();
     }
 }
