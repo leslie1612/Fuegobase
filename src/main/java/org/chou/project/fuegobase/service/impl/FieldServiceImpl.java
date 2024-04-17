@@ -1,17 +1,21 @@
 package org.chou.project.fuegobase.service.impl;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.FieldData;
 import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
+import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
+import org.chou.project.fuegobase.service.s3.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -24,47 +28,38 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FieldServiceImpl implements FieldService {
-
     private CollectionRepository collectionRepository;
     private DocumentRepository documentRepository;
     private FieldTypeRepository fieldTypeRepository;
     private FieldKeyRepository fieldKeyRepository;
     private FieldValueRepository fieldValueRepository;
-
-    @Value("${spring.elasticsearch.uris}")
-    private String elasticsearchUrl;
-    @Value("${spring.elasticsearch.username}")
-    private String username;
-    @Value("${spring.elasticsearch.password}")
-    private String password;
-
+    private S3Service s3Service;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository,
                             DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository,
                             FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository) {
+                            FieldValueRepository fieldValueRepository,
+                            S3Service s3Service) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
         this.fieldKeyRepository = fieldKeyRepository;
         this.fieldValueRepository = fieldValueRepository;
+        this.s3Service = s3Service;
     }
 
     @Override
     @Transactional
     public void createField(String APIKey, String projectId,
                             String collectionId, String documentId, FieldData fieldData) {
-        // TODO 驗證 APIKEY
-
 
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         FieldType fieldKeyType = getType(fieldData.getType());
@@ -93,7 +88,8 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-//            addWriteNumber(projectId, 1);
+
+            addWriteNumber(projectId, String.valueOf(savedFieldKey.getId()));
 
         }
 
@@ -103,7 +99,11 @@ public class FieldServiceImpl implements FieldService {
     public List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId) {
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
-//        addReadNumber(projectId, fieldDtoList.size());
+
+        for (FieldDto fieldDto : fieldDtoList) {
+            addReadNumber(projectId, String.valueOf(fieldDto.getId()));
+        }
+
         return fieldDtoList;
 
     }
@@ -123,7 +123,9 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setName(document.getName());
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
-//            addReadNumber(projectId, filterDocumentDto.getFieldDtoList().size());
+            for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
+                addReadNumber(projectId, String.valueOf(fieldDto.getId()));
+            }
 
             result.add(filterDocumentDto);
         }
@@ -236,8 +238,8 @@ public class FieldServiceImpl implements FieldService {
             ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
         }
 
-//        addReadNumber(projectId, 1);
-//        addWriteNumber(projectId, 1);
+//        addReadNumber(projectId, fieldId);
+//        addWriteNumber(projectId, fieldId);
         return fieldDto;
     }
 
@@ -253,8 +255,8 @@ public class FieldServiceImpl implements FieldService {
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             log.info("Delete field by " + fieldId + " successfully!");
         }
-//        addReadNumber(projectId, 1);
-//        addWriteNumber(projectId, 1);
+        addReadNumber(projectId, fieldId);
+        addWriteNumber(projectId, fieldId);
     }
 
     @Override
@@ -266,8 +268,8 @@ public class FieldServiceImpl implements FieldService {
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-//        addReadNumber(projectId, 1);
-//        addWriteNumber(projectId, 1);
+        addReadNumber(projectId, fieldId);
+        addWriteNumber(projectId, fieldId);
 
         return mapFieldKeyAndValueToFieldDto(fieldKey, existingFieldValue);
     }
@@ -277,7 +279,7 @@ public class FieldServiceImpl implements FieldService {
         FieldKey fieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 
         FieldValue fieldValue = new FieldValue();
-        if(fieldKey.getFieldType().getTypeName().equals("Map")){
+        if (fieldKey.getFieldType().getTypeName().equals("Map")) {
             fieldValue.setFieldKey(fieldKey);
         }
 
@@ -287,8 +289,8 @@ public class FieldServiceImpl implements FieldService {
 
         fieldValueRepository.save(fieldValue);
 
-//        addReadNumber(projectId, 1);
-//        addWriteNumber(projectId, 1);
+        addReadNumber(projectId, fieldId);
+        addWriteNumber(projectId, fieldId);
 
         return mapFieldKeyAndValueToFieldDto(fieldKey, fieldValue);
     }
@@ -351,48 +353,54 @@ public class FieldServiceImpl implements FieldService {
         }
     }
 
-    public void addReadNumber(String projectId, int times) {
-        Map<String, Object> readLog = new HashMap<>();
-//        ReadWriteLog readWriteLog = new ReadWriteLog();
-        readLog.put("projectId", projectId);
-        readLog.put("action", "Read");
+    public void addReadNumber(String projectId, String fieldId) {
+
+        Map<String, String> readWriteLog = new HashMap<>();
+        AmazonS3 s3Client = s3Service.createS3Client();
+
+        readWriteLog.put("projectId", projectId);
+        readWriteLog.put("fieldId", fieldId);
+        readWriteLog.put("action", "write");
 
         LocalDateTime localDateTime = LocalDateTime.now();
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        readLog.put("timestamp",date);
+        readWriteLog.put("Timestamp", date.toString());
 
-//        addDataToElasticsearch(readLog);
-//        readWriteLogRepository.save(readWriteLog);
-        log.info("projectId : " + projectId + " read " + times + " times");
+        s3Service.uploadLogs(s3Client, projectId, "read", readWriteLog);
+        log.info("projectId : " + projectId + " add 1 read log");
     }
 
-    public void addWriteNumber(String projectId, int times) {
-        Map<String, Object> writeLog = new HashMap<>();
-        writeLog.put("projectId", projectId);
-        writeLog.put("action", "Write");
+    public void addWriteNumber(String projectId, String fieldId) {
+
+        Map<String, String> readWriteLog = new HashMap<>();
+        AmazonS3 s3Client = s3Service.createS3Client();
+
+        readWriteLog.put("projectId", projectId);
+        readWriteLog.put("fieldId", fieldId);
+        readWriteLog.put("action", "write");
 
         LocalDateTime localDateTime = LocalDateTime.now();
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        writeLog.put("timestamp",date);
+        readWriteLog.put("Timestamp", date.toString());
 
-        addDataToElasticsearch(writeLog);
-        log.info("projectId : " + projectId + " write " + times + " times");
+        s3Service.uploadLogs(s3Client, projectId, "write", readWriteLog);
+        log.info("projectId : " + projectId + " add 1 write log");
     }
 
-    public void addDataToElasticsearch(Map<String,Object> data) {
-        HttpHeaders headers = new HttpHeaders();
-        RestTemplate restTemplate = new RestTemplate();
-
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        String credentials = username + ":" + password;
-        String base64Credentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        headers.set("Authorization", "Basic " + base64Credentials);
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(data.toString(), headers);
-        restTemplate.exchange(elasticsearchUrl, HttpMethod.POST,requestEntity,String.class);
-
-
-    }
+//    public void addDataToElasticsearch(Map<String, Object> data) {
+//        HttpHeaders headers = new HttpHeaders();
+//        RestTemplate restTemplate = new RestTemplate();
+//
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        String credentials = username + ":" + password;
+//        String base64Credentials = Base64.getEncoder().encodeToString(credentials.getBytes());
+//        headers.set("Authorization", "Basic " + base64Credentials);
+//
+//        HttpEntity<String> requestEntity = new HttpEntity<>(data.toString(), headers);
+//        restTemplate.exchange(elasticsearchUrl, HttpMethod.POST, requestEntity, String.class);
+//
+//
+//    }
 
 }
