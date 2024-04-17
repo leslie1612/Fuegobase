@@ -1,22 +1,36 @@
 package org.chou.project.fuegobase.model.dashboard;
 
-import jakarta.persistence.Id;
-import lombok.Data;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 
+@Entity
+@Table(name = "project_opertions_daily")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReadWriteLog {
-    private String projectId;
 
-    private String fieldId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String action;
+    @Column(name = "project_id")
+    private Long projectId;
 
-    private Date timestamp;
+    @Column(name = "read_count")
+    private int readCount;
+
+    @Column(name = "write_count")
+    private int writeCount;
+
+    @Column(name = "date")
+    private LocalDate date;
 
 }

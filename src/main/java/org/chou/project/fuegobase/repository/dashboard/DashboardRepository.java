@@ -74,5 +74,7 @@ public class DashboardRepository {
         nativeQuery.setParameter(1, projectId);
         return (long)nativeQuery.getSingleResult();
     }
+
+
 }
 
