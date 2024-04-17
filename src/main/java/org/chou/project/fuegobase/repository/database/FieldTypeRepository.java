@@ -7,8 +7,5 @@ import org.springframework.data.repository.query.Param;
 
 public interface FieldTypeRepository extends JpaRepository<FieldType, Long> {
 
-//    @Query(value = "SELECT id FROM field_type WHERE type_name = :name", nativeQuery = true)
-//    int findIdByTypeName(@Param("name") String typeName);
-
     FieldType findFieldTypeByTypeName(@Param("type_name") String typeName);
 }

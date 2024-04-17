@@ -3,6 +3,7 @@ package org.chou.project.fuegobase.controller.database;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.CollectionData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
+import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.service.CollectionService;
 import org.chou.project.fuegobase.service.FieldService;
@@ -30,14 +31,16 @@ public class CollectionController {
 
     @PostMapping
     public ResponseEntity<?> createCollection(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                              @PathVariable String projectId,
+                                              @PathVariable long projectId,
                                               @RequestBody CollectionData collectionData) {
 //        String APIKey = authorization.split(" ")[1].trim();
         try{
             collectionService.createCollection(API_KEY, projectId, collectionData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }catch (NoSuchElementException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project is not exist.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Project is not exist."));
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 
     }
@@ -58,13 +61,13 @@ public class CollectionController {
                                                @RequestParam String filter,
                                                @RequestParam String value,
                                                @RequestParam String type) {
-//        try{
+        try{
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new GenericResponse<>(fieldService.getFieldsByFilter(API_KEY, projectId, collectionId, filter, value, type)));
-//        }catch (Exception e){
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-//        }
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
+        }
 
     }
 
@@ -77,7 +80,7 @@ public class CollectionController {
             Collection c = collectionService.updateCollectionById(API_KEY, projectId, collectionId, updatedCollection);
             return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(c));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Collection not found"));
         }
 
     }
@@ -91,7 +94,7 @@ public class CollectionController {
             collectionService.deleteCollection(API_KEY, projectId, collectionId);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Collection not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Collection not found"));
         }
     }
 

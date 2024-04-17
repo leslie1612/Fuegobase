@@ -29,8 +29,10 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void createDocument(String APIKey, String projectId, String collectionId, DocumentData documentData) {
 
-        // TODO 驗證 APIKEY
         Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
+        if (documentRepository.existsByName(documentData.getName())) {
+            throw new IllegalArgumentException("Name can not be repeated.");
+        }
 
         Document document = new Document();
         document.setName(documentData.getName());
@@ -41,7 +43,6 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public List<Document> getDocuments(String APIKey, String projectId, String collectionId) {
-//        long collectionId = getCollectionId(projectId, collectionName);
         Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
         return documentRepository.findDocumentsByCollectionId(c.getId());
     }
@@ -66,12 +67,6 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Delete document by : " + documentId + " successfully!");
     }
 
-    //    public Collection getCollection(String projectId, String collectionName) {
-//        return collectionRepository.findCollection(Long.parseLong(projectId), collectionName);
-//    }
-//    public long getCollectionId(String projectId, String collectionId) {
-//        return collectionRepository.findCollectionId(Long.parseLong(projectId), collectionId);
-//    }
 
     public Collection findCollectionByProjectIdAndId(String projectId, String collectionId) {
         return collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();

@@ -12,13 +12,6 @@ import java.util.List;
 public interface FieldProjectionRepository {
     List<FieldProjection> fetchAllFieldsByDocumentId(@Param("documentId") long documentId);
 
-    List<Long> getDocumentIdsByFilter(
-            @Param("collectionId") String collectionId,
-            @Param("name") String keyName,
-            @Param("valueName") String valueName,
-            @Param("typeName") String type
-    );
-
     List<Document> getDocumentsByFilter(
             @Param("collectionId") String collectionId,
             @Param("name") String keyName,

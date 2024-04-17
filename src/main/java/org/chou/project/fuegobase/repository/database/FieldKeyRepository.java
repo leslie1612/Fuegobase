@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FieldKeyRepository extends JpaRepository<FieldKey, Long>, FieldProjectionRepository {
-    List<FieldKey> findAllByDocumentId(long documentId);
 
     @Query(value = """
             SELECT COUNT(*) FROM field_key k 

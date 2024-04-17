@@ -23,22 +23,23 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void createProject(ProjectData projectData) {
-
         // TODO API key 如何產生
         String APIKey = "aaa12345bbb";
 
-        Project project = new Project();
+        if(projectRepository.existsByName(projectData.getName())){
+            throw new IllegalArgumentException("Name can not be repeated.");
+        }else{
+            Project project = new Project();
+            project.setName(projectData.getName());
+            project.setUserId(Long.parseLong(projectData.getUserId()));
+            project.setAPIKey(APIKey);
 
-        project.setName(projectData.getName());
-        project.setUserId(Long.parseLong(projectData.getUserId()));
-        project.setAPIKey(APIKey);
-
-        projectRepository.save(project);
+            projectRepository.save(project);
+        }
     }
 
     @Override
     public List<Project> getProjects(long userId) {
-//         return projectRepository.getProjectsByUserId(userId).stream().map(ProjectDto::from).toList();
          return projectRepository.getProjectsByUserId(userId);
     }
 

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/dashboard")
 public class DashboardController {
-
     private final DashboardService dashboardService;
     @Autowired
     public DashboardController(DashboardService dashboardService){
@@ -24,8 +23,13 @@ public class DashboardController {
     }
 
     @GetMapping("/collections/{id}")
-    public void getCollectionCount(@PathVariable("id") long projectId){
+    public long getCollectionCount(@PathVariable("id") long projectId){
+        return dashboardService.getCollectionCount(projectId);
+    }
 
+    @GetMapping("/documents/{id}")
+    public long getDocumentCount(@PathVariable("id") long projectId){
+        return dashboardService.getDocumentCount(projectId);
     }
 
 }

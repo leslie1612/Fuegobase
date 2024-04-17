@@ -12,7 +12,6 @@ public interface FieldService {
     void createField(String APIKey, String projectId, String collectionId,
                      String documentId, FieldData fieldData);
 
-//    List<Field> getFields(String APIKey, String projectId, String collectionName, String documentName);
     List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId);
 
     List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId,

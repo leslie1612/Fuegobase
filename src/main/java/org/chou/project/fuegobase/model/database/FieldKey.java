@@ -14,9 +14,6 @@ public class FieldKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-//    @ManyToOne()
-//    @JoinColumn(name = "document_id")
-//    private Document document;
 
     @Column(name = "document_id")
     private long documentId;

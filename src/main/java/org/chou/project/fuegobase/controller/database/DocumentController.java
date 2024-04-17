@@ -2,6 +2,7 @@ package org.chou.project.fuegobase.controller.database;
 
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.DocumentData;
+import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +34,9 @@ public class DocumentController {
             documentService.createDocument(API_KEY, projectId, collectionId, documentData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 
     }
@@ -47,7 +50,7 @@ public class DocumentController {
                     .status(HttpStatus.OK)
                     .body(new GenericResponse<>(documentService.getDocuments(API_KEY, projectId, collectionId)));
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
         }
 
     }
@@ -64,8 +67,8 @@ public class DocumentController {
                     .body(new GenericResponse<>(
                             documentService.updateDocumentById(API_KEY, projectId, collectionId, documentId, updatedDocument))
                     );
-        }catch (NoSuchElementException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
         }
     }
 
@@ -77,8 +80,8 @@ public class DocumentController {
         try {
             documentService.deleteDocument(API_KEY, projectId, collectionId, documentId);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }catch (NoSuchElementException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
         }
 
     }

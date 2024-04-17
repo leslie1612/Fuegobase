@@ -6,7 +6,6 @@ import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
-import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
@@ -14,9 +13,18 @@ import org.chou.project.fuegobase.model.database.FieldValue;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +37,13 @@ public class FieldServiceImpl implements FieldService {
     private FieldTypeRepository fieldTypeRepository;
     private FieldKeyRepository fieldKeyRepository;
     private FieldValueRepository fieldValueRepository;
+
+    @Value("${spring.elasticsearch.uris}")
+    private String elasticsearchUrl;
+    @Value("${spring.elasticsearch.username}")
+    private String username;
+    @Value("${spring.elasticsearch.password}")
+    private String password;
 
 
     @Autowired
@@ -78,7 +93,7 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-            addWriteNumber(1);
+//            addWriteNumber(projectId, 1);
 
         }
 
@@ -88,7 +103,7 @@ public class FieldServiceImpl implements FieldService {
     public List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId) {
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
-        addReadNumber(fieldDtoList.size());
+//        addReadNumber(projectId, fieldDtoList.size());
         return fieldDtoList;
 
     }
@@ -108,7 +123,7 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setName(document.getName());
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
-            addReadNumber(filterDocumentDto.getFieldDtoList().size());
+//            addReadNumber(projectId, filterDocumentDto.getFieldDtoList().size());
 
             result.add(filterDocumentDto);
         }
@@ -195,7 +210,7 @@ public class FieldServiceImpl implements FieldService {
                                 String documentId,
                                 String fieldId,
                                 FieldKeyData updatedFieldKey) {
-//        FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+
         FieldKey existingFieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 
         existingFieldKey.setName(updatedFieldKey.getName());
@@ -221,8 +236,8 @@ public class FieldServiceImpl implements FieldService {
             ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
         }
 
-        addReadNumber(1);
-        addWriteNumber(1);
+//        addReadNumber(projectId, 1);
+//        addWriteNumber(projectId, 1);
         return fieldDto;
     }
 
@@ -238,25 +253,21 @@ public class FieldServiceImpl implements FieldService {
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             log.info("Delete field by " + fieldId + " successfully!");
         }
-        addReadNumber(1);
-        addWriteNumber(1);
+//        addReadNumber(projectId, 1);
+//        addWriteNumber(projectId, 1);
     }
 
     @Override
     public FieldDto updateField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, ValueInfoData valueInfoData) {
-        FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, String.valueOf(valueInfoData.getValueId()));
-//        FieldValue existingFieldValue = fieldValueRepository.findById(valueInfoData.getValueId()).orElseThrow();
 
+        FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, String.valueOf(valueInfoData.getValueId()));
         FieldKey fieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
 
-        if (fieldKey.getFieldType().getTypeName().equals("Map")) {
-            existingFieldValue.setKeyName(valueInfoData.getKey());
-        }
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-        addReadNumber(1);
-        addWriteNumber(1);
+//        addReadNumber(projectId, 1);
+//        addWriteNumber(projectId, 1);
 
         return mapFieldKeyAndValueToFieldDto(fieldKey, existingFieldValue);
     }
@@ -266,15 +277,18 @@ public class FieldServiceImpl implements FieldService {
         FieldKey fieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 
         FieldValue fieldValue = new FieldValue();
-        fieldValue.setFieldKey(fieldKey);
+        if(fieldKey.getFieldType().getTypeName().equals("Map")){
+            fieldValue.setFieldKey(fieldKey);
+        }
+
         fieldValue.setKeyName(valueInfoData.getKey());
         fieldValue.setValueName(valueInfoData.getValue());
         fieldValue.setFieldType(fieldTypeRepository.findFieldTypeByTypeName(valueInfoData.getType()));
 
         fieldValueRepository.save(fieldValue);
 
-        addReadNumber(1);
-        addWriteNumber(1);
+//        addReadNumber(projectId, 1);
+//        addWriteNumber(projectId, 1);
 
         return mapFieldKeyAndValueToFieldDto(fieldKey, fieldValue);
     }
@@ -337,12 +351,48 @@ public class FieldServiceImpl implements FieldService {
         }
     }
 
-    public void addReadNumber(int times) {
-        log.info("read:" + times);
+    public void addReadNumber(String projectId, int times) {
+        Map<String, Object> readLog = new HashMap<>();
+//        ReadWriteLog readWriteLog = new ReadWriteLog();
+        readLog.put("projectId", projectId);
+        readLog.put("action", "Read");
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        readLog.put("timestamp",date);
+
+//        addDataToElasticsearch(readLog);
+//        readWriteLogRepository.save(readWriteLog);
+        log.info("projectId : " + projectId + " read " + times + " times");
     }
 
-    public void addWriteNumber(int times) {
-        log.info("write:" + times);
+    public void addWriteNumber(String projectId, int times) {
+        Map<String, Object> writeLog = new HashMap<>();
+        writeLog.put("projectId", projectId);
+        writeLog.put("action", "Write");
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        writeLog.put("timestamp",date);
+
+        addDataToElasticsearch(writeLog);
+        log.info("projectId : " + projectId + " write " + times + " times");
+    }
+
+    public void addDataToElasticsearch(Map<String,Object> data) {
+        HttpHeaders headers = new HttpHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String credentials = username + ":" + password;
+        String base64Credentials = Base64.getEncoder().encodeToString(credentials.getBytes());
+        headers.set("Authorization", "Basic " + base64Credentials);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(data.toString(), headers);
+        restTemplate.exchange(elasticsearchUrl, HttpMethod.POST,requestEntity,String.class);
+
+
     }
 
 }

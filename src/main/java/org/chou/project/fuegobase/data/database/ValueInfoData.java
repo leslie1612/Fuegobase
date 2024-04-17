@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 public class ValueInfoData {
 
 
+    @Nullable
     private long valueId;
 
     @Nullable

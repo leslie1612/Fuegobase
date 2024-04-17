@@ -2,6 +2,7 @@ package org.chou.project.fuegobase.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.repository.dashboard.DashboardRepository;
+import org.chou.project.fuegobase.repository.database.CollectionRepository;
 import org.chou.project.fuegobase.repository.database.DocumentRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.DashboardService;
@@ -14,11 +15,13 @@ public class DashBoardServiceImpl implements DashboardService {
 
     private ProjectRepository projectRepository;
     private DashboardRepository dashboardRepository;
+    private CollectionRepository collectionRepository;
 
     @Autowired
-    public DashBoardServiceImpl(ProjectRepository projectRepository, DashboardRepository dashboardRepository) {
+    public DashBoardServiceImpl(ProjectRepository projectRepository, DashboardRepository dashboardRepository, CollectionRepository collectionRepository) {
         this.projectRepository = projectRepository;
         this.dashboardRepository = dashboardRepository;
+        this.collectionRepository = collectionRepository;
     }
 
     @Override
@@ -30,10 +33,10 @@ public class DashBoardServiceImpl implements DashboardService {
         log.info("collectionsSize" + collectionsSize);
 
         float documentsSize = dashboardRepository.countDocumentsSize(projectId);
-        log.info("collectionsSize" + documentsSize);
+        log.info("documentsSize" + documentsSize);
 
         float fieldKeysSize = dashboardRepository.countFieldKeysSize(projectId);
-        log.info("collectionsSize" + fieldKeysSize);
+        log.info("fieldKeysSize" + fieldKeysSize);
 
         float fieldValueSize = dashboardRepository.countFieldValueSize(projectId);
         log.info("fieldValueSize" + fieldValueSize);
@@ -51,5 +54,14 @@ public class DashBoardServiceImpl implements DashboardService {
 
     }
 
+    @Override
+    public long getCollectionCount(long projectId) {
+        return collectionRepository.countAllByProjectId(projectId);
+    }
+
+    @Override
+    public long getDocumentCount(long projectId) {
+        return dashboardRepository.countDocumentsByProjectId(projectId);
+    }
 
 }
