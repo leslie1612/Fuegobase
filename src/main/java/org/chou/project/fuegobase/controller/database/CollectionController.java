@@ -1,19 +1,20 @@
 package org.chou.project.fuegobase.controller.database;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.CollectionData;
-import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.service.CollectionService;
 import org.chou.project.fuegobase.service.FieldService;
+import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.net.http.HttpRequest;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -21,25 +22,31 @@ import java.util.NoSuchElementException;
 public class CollectionController {
     private final CollectionService collectionService;
     private final FieldService fieldService;
+    private ProjectService projectService;
+
     private String API_KEY = "aaa12345bbb";
 
     @Autowired
-    public CollectionController(CollectionService collectionService, FieldService fieldService) {
+    public CollectionController(CollectionService collectionService,
+                                FieldService fieldService, ProjectService projectService) {
         this.collectionService = collectionService;
         this.fieldService = fieldService;
+        this.projectService = projectService;
     }
 
     @PostMapping
     public ResponseEntity<?> createCollection(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
                                               @PathVariable long projectId,
-                                              @RequestBody CollectionData collectionData) {
+                                              @RequestBody CollectionData collectionData,
+                                              HttpServletRequest request) {
 //        String APIKey = authorization.split(" ")[1].trim();
-        try{
+        try {
+            projectService.isDomainValid(String.valueOf(projectId), request);
             collectionService.createCollection(API_KEY, projectId, collectionData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Project is not exist."));
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 
@@ -47,7 +54,8 @@ public class CollectionController {
 
     @GetMapping
     public ResponseEntity<?> getCollections(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                            @PathVariable String projectId) {
+                                            @PathVariable String projectId, HttpServletRequest request) {
+        projectService.isDomainValid(projectId, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -60,12 +68,14 @@ public class CollectionController {
                                                @PathVariable String collectionId,
                                                @RequestParam String filter,
                                                @RequestParam String value,
-                                               @RequestParam String type) {
-        try{
+                                               @RequestParam String type,
+                                               HttpServletRequest request) {
+        try {
+            projectService.isDomainValid(projectId, request);
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new GenericResponse<>(fieldService.getFieldsByFilter(API_KEY, projectId, collectionId, filter, value, type)));
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
         }
 
@@ -75,8 +85,10 @@ public class CollectionController {
     public ResponseEntity<?> renameCollection(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
                                               @PathVariable String projectId,
                                               @PathVariable String collectionId,
-                                              @RequestBody CollectionData updatedCollection) {
+                                              @RequestBody CollectionData updatedCollection,
+                                              HttpServletRequest request) {
         try {
+            projectService.isDomainValid(projectId, request);
             Collection c = collectionService.updateCollectionById(API_KEY, projectId, collectionId, updatedCollection);
             return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(c));
         } catch (Exception e) {
@@ -88,9 +100,11 @@ public class CollectionController {
     @DeleteMapping("/{collectionId}")
     public ResponseEntity<?> deleteCollection(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
                                               @PathVariable String projectId,
-                                              @PathVariable String collectionId) {
+                                              @PathVariable String collectionId,
+                                              HttpServletRequest request) {
 
         try {
+            projectService.isDomainValid(projectId, request);
             collectionService.deleteCollection(API_KEY, projectId, collectionId);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (Exception e) {

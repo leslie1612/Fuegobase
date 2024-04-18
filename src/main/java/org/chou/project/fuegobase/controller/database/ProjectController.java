@@ -1,6 +1,8 @@
 package org.chou.project.fuegobase.controller.database;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.chou.project.fuegobase.data.GenericResponse;
+import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.ProjectService;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -46,15 +49,23 @@ public class ProjectController {
 
     }
 
-    @DeleteMapping("{projectId}")
+    @DeleteMapping("/{projectId}")
     public ResponseEntity<?> deleteProject(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                           @PathVariable("projectId") String projectId) {
-        try{
-            projectService.deleteProject(API_KEY, projectId);
+                                           @PathVariable("projectId") String projectId,
+                                           HttpServletRequest request) {
+        try {
+            projectService.deleteProject(API_KEY, projectId, request);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Project not found."));
         }
+    }
 
+    @GetMapping("/{projectId}/whitelist")
+    public ResponseEntity<?> addDomainNameWhitelist(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                                    @PathVariable("projectId") long projectId,
+                                                    @RequestBody DomainNameData domainNameData) {
+        projectService.addDomainNameWhiteList(projectId, domainNameData);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

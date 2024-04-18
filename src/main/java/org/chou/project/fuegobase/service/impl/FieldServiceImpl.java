@@ -42,12 +42,9 @@ public class FieldServiceImpl implements FieldService {
     private S3Service s3Service;
 
     @Autowired
-    public FieldServiceImpl(CollectionRepository collectionRepository,
-                            DocumentRepository documentRepository,
-                            FieldTypeRepository fieldTypeRepository,
-                            FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository,
-                            S3Service s3Service) {
+    public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
+                            FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
+                            FieldValueRepository fieldValueRepository, S3Service s3Service) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
@@ -73,14 +70,12 @@ public class FieldServiceImpl implements FieldService {
 
         List<ValueInfoData> valueInfoDataList = fieldData.getValueInfo();
         for (ValueInfoData valueInfoData : valueInfoDataList) {
-
             // if key type is string, number or boolean, value type is same as key type
             if (valueInfoData.getType() == null) {
                 valueInfoData.setType(fieldData.getType());
             }
 
             FieldType fieldValueType = stringToType(valueInfoData.getType());
-
             FieldValue fieldValue = new FieldValue();
             fieldValue.setFieldKey(savedFieldKey);
             fieldValue.setKeyName(valueInfoData.getKey());
@@ -88,7 +83,6 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-
             addReadWriteNumber(projectId,String.valueOf(savedFieldKey.getId()),"write");
         }
 
@@ -102,19 +96,16 @@ public class FieldServiceImpl implements FieldService {
         for (FieldDto fieldDto : fieldDtoList) {
             addReadWriteNumber(projectId,String.valueOf(fieldDto.getId()),"read");
         }
-
         return fieldDtoList;
-
     }
 
     @Override
-    public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId, String collectionId, String filter, String value, String type) {
+    public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId,
+                                                     String collectionId, String filter, String value, String type) {
         collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
-
         List<Document> documents = fieldKeyRepository.getDocumentsByFilter(collectionId, filter, value, type);
 
         List<FilterDocumentDto> result = new ArrayList<>();
-
         for (Document document : documents) {
             FilterDocumentDto filterDocumentDto = new FilterDocumentDto();
             filterDocumentDto.setId(document.getId());
@@ -125,7 +116,6 @@ public class FieldServiceImpl implements FieldService {
             for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
                 addReadWriteNumber(projectId,String.valueOf(fieldDto.getId()),"read");
             }
-
             result.add(filterDocumentDto);
         }
         return result;
@@ -136,30 +126,23 @@ public class FieldServiceImpl implements FieldService {
     }
 
     public List<FieldDto> mapProjectionToDto(List<FieldProjection> fieldProjectionList) {
-
         List<FieldDto> fieldDtoList = addKeyInfo(fieldProjectionList);
 
         for (FieldProjection fieldProjection : fieldProjectionList) {
-
             ValueInfoData valueInfoData = new ValueInfoData();
             valueInfoData.setValue(fieldProjection.getValueName());
             valueInfoData.setValueId(fieldProjection.getValueId());
 
             fieldDtoList.forEach(fieldDto -> {
-
                 if (fieldProjection.getId() == fieldDto.getId()) {
-
                     if (fieldProjection.getKeyType().equals("Array")) {
-
                         valueInfoData.setType(fieldProjection.getValueType());
 
                         if (fieldDto.getValueInfo() == null) {
                             fieldDto.setValueInfo(new ArrayList<>());
                         }
                         ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
-
                     } else if (fieldProjection.getKeyType().equals("Map")) {
-
                         valueInfoData.setKey(fieldProjection.getKeyName());
                         valueInfoData.setType(fieldProjection.getValueType());
 
@@ -167,24 +150,20 @@ public class FieldServiceImpl implements FieldService {
                             fieldDto.setValueInfo(new ArrayList<>());
                         }
                         ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
-
                     } else {
                         valueInfoData.setType(fieldProjection.getKeyType());
                         fieldDto.setValueInfo(valueInfoData);
                     }
-
                 }
             });
         }
-
         return fieldDtoList;
-
     }
 
     public List<FieldDto> addKeyInfo(List<FieldProjection> fieldProjectionList) {
-
         Map<String, List<FieldProjection>> groupedByProductId = fieldProjectionList.stream()
-                .collect(Collectors.groupingBy(fp -> fp.getId() + "-" + fp.getDocumentId() + "-" + fp.getName() + "-" + fp.getKeyType()));
+                .collect(Collectors.groupingBy(fp ->
+                        fp.getId() + "-" + fp.getDocumentId() + "-" + fp.getName() + "-" + fp.getKeyType()));
 
         Set<String> keySet = groupedByProductId.keySet();
 
@@ -205,7 +184,8 @@ public class FieldServiceImpl implements FieldService {
 
 
     @Override
-    public void deleteField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, String valueId) {
+    public void deleteField(String APIKey, String projectId, String collectionId,
+                            String documentId, String fieldId, String valueId) {
 
         if (valueId != null) {
             findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
@@ -317,7 +297,8 @@ public class FieldServiceImpl implements FieldService {
         }
     }
 
-    public FieldValue findFieldValue(String projectId, String collectionId, String documentId, String fieldId, String valueId) {
+    public FieldValue findFieldValue(String projectId, String collectionId,
+                                     String documentId, String fieldId, String valueId) {
         int count = fieldValueRepository.isFieldValueExist(
                 Long.parseLong(projectId),
                 Long.parseLong(collectionId),

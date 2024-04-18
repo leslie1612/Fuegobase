@@ -22,6 +22,7 @@ public class CollectionServiceImpl implements CollectionService {
     private final CollectionRepository collectionRepository;
     private final ProjectRepository projectRepository;
 
+
     @Autowired
     public CollectionServiceImpl(CollectionRepository collectionRepository, ProjectRepository projectRepository) {
         this.collectionRepository = collectionRepository;
