@@ -70,17 +70,18 @@ public class FieldController {
 //                .body(new GenericResponse<>(fieldService.renameField(API_KEY, projectId, collectionId, documentId, fieldId, updateKeyData)));
 //    }
 
-    @PatchMapping("/{fieldId}")
+    @PatchMapping("/{fieldId}/value/{valueId}")
     public ResponseEntity<?> updateField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
                                          @PathVariable String projectId,
                                          @PathVariable String collectionId,
                                          @PathVariable String documentId,
                                          @PathVariable String fieldId,
+                                         @PathVariable String valueId,
                                          @RequestBody ValueInfoData valueInfoData) {
         try {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(fieldService.updateField(API_KEY, projectId, collectionId, documentId, fieldId, valueInfoData)));
+                    .body(new GenericResponse<>(fieldService.updateField(API_KEY, projectId, collectionId, documentId, fieldId, valueId, valueInfoData)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
         }
@@ -92,14 +93,15 @@ public class FieldController {
                                            @PathVariable String collectionId,
                                            @PathVariable String documentId,
                                            @PathVariable String fieldId,
-                                           @RequestBody ValueInfoData valueInfoData,
-                                           @RequestParam(required = false) String valueId) {
+                                           @RequestBody ValueInfoData valueInfoData) {
         try {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(fieldService.addFieldValue(API_KEY, projectId, collectionId, documentId, fieldId, valueId, valueInfoData)));
-        } catch (Exception e) {
+                    .body(new GenericResponse<>(fieldService.addFieldValue(API_KEY, projectId, collectionId, documentId, fieldId, valueInfoData)));
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Missing map key"));
         }
 
     }

@@ -62,7 +62,7 @@ public class FieldServiceImpl implements FieldService {
                             String collectionId, String documentId, FieldData fieldData) {
 
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
-        FieldType fieldKeyType = getType(fieldData.getType());
+        FieldType fieldKeyType = stringToType(fieldData.getType());
 
         FieldKey fieldKey = new FieldKey();
         fieldKey.setDocumentId(document.getId());
@@ -79,7 +79,7 @@ public class FieldServiceImpl implements FieldService {
                 valueInfoData.setType(fieldData.getType());
             }
 
-            FieldType fieldValueType = getType(valueInfoData.getType());
+            FieldType fieldValueType = stringToType(valueInfoData.getType());
 
             FieldValue fieldValue = new FieldValue();
             fieldValue.setFieldKey(savedFieldKey);
@@ -89,8 +89,7 @@ public class FieldServiceImpl implements FieldService {
 
             fieldValueRepository.save(fieldValue);
 
-            addWriteNumber(projectId, String.valueOf(savedFieldKey.getId()));
-
+            addReadWriteNumber(projectId,String.valueOf(savedFieldKey.getId()),"write");
         }
 
     }
@@ -101,7 +100,7 @@ public class FieldServiceImpl implements FieldService {
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
 
         for (FieldDto fieldDto : fieldDtoList) {
-            addReadNumber(projectId, String.valueOf(fieldDto.getId()));
+            addReadWriteNumber(projectId,String.valueOf(fieldDto.getId()),"read");
         }
 
         return fieldDtoList;
@@ -124,7 +123,7 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
             for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
-                addReadNumber(projectId, String.valueOf(fieldDto.getId()));
+                addReadWriteNumber(projectId,String.valueOf(fieldDto.getId()),"read");
             }
 
             result.add(filterDocumentDto);
@@ -132,7 +131,7 @@ public class FieldServiceImpl implements FieldService {
         return result;
     }
 
-    public FieldType getType(String type) {
+    public FieldType stringToType(String type) {
         return fieldTypeRepository.findFieldTypeByTypeName(type);
     }
 
@@ -204,44 +203,6 @@ public class FieldServiceImpl implements FieldService {
         return fieldDtoList;
     }
 
-    @Transactional
-    @Override
-    public FieldDto renameField(String APIKey,
-                                String projectId,
-                                String collectionId,
-                                String documentId,
-                                String fieldId,
-                                FieldKeyData updatedFieldKey) {
-
-        FieldKey existingFieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
-
-        existingFieldKey.setName(updatedFieldKey.getName());
-        fieldKeyRepository.save(existingFieldKey);
-
-        List<FieldValue> fieldValueList = fieldValueRepository.findAllByFieldKey(existingFieldKey);
-        FieldDto fieldDto = new FieldDto();
-        fieldDto.setId(existingFieldKey.getId());
-        fieldDto.setKey(existingFieldKey.getName());
-        fieldDto.setType(existingFieldKey.getFieldType().getTypeName());
-
-        for (FieldValue fieldValue : fieldValueList) {
-            if (fieldDto.getValueInfo() == null) {
-                fieldDto.setValueInfo(new ArrayList<>());
-            }
-
-            ValueInfoData valueInfoData = new ValueInfoData();
-            valueInfoData.setValueId(fieldValue.getId());
-            valueInfoData.setKey(fieldValue.getKeyName());
-            valueInfoData.setType(fieldValue.getFieldType().getTypeName());
-            valueInfoData.setValue(fieldValue.getValueName());
-
-            ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
-        }
-
-//        addReadNumber(projectId, fieldId);
-//        addWriteNumber(projectId, fieldId);
-        return fieldDto;
-    }
 
     @Override
     public void deleteField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, String valueId) {
@@ -255,44 +216,62 @@ public class FieldServiceImpl implements FieldService {
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             log.info("Delete field by " + fieldId + " successfully!");
         }
-        addReadNumber(projectId, fieldId);
-        addWriteNumber(projectId, fieldId);
+        addReadWriteNumber(projectId,fieldId,"read");
+        addReadWriteNumber(projectId,fieldId,"write");
     }
 
     @Override
-    public FieldDto updateField(String APIKey, String projectId, String collectionId, String documentId, String fieldId, ValueInfoData valueInfoData) {
+    public FieldDto updateField(String APIKey, String projectId,
+                                String collectionId, String documentId,
+                                String fieldId, String valueId, ValueInfoData valueInfoData) {
 
-        FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, String.valueOf(valueInfoData.getValueId()));
-        FieldKey fieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+        FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
+        FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+
+        String existingFieldKeyType = existingFieldKey.getFieldType().getTypeName();
+
+        if (existingFieldKeyType.equals("Map") || existingFieldKeyType.equals("Array")) {
+            existingFieldValue.setFieldType(stringToType(valueInfoData.getType()));
+        }
 
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-        addReadNumber(projectId, fieldId);
-        addWriteNumber(projectId, fieldId);
+        addReadWriteNumber(projectId,fieldId,"read");
+        addReadWriteNumber(projectId,fieldId,"write");
 
-        return mapFieldKeyAndValueToFieldDto(fieldKey, existingFieldValue);
+        return mapFieldKeyAndValueToFieldDto(existingFieldKey, existingFieldValue);
     }
 
     @Override
-    public FieldDto addFieldValue(String APIKey, String projectId, String collectionId, String documentId, String fieldId, String valueId, ValueInfoData valueInfoData) {
-        FieldKey fieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
+    public FieldDto addFieldValue(String APIKey, String projectId,
+                                  String collectionId, String documentId,
+                                  String fieldId, ValueInfoData valueInfoData) {
+        FieldKey existingFieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 
-        FieldValue fieldValue = new FieldValue();
-        if (fieldKey.getFieldType().getTypeName().equals("Map")) {
-            fieldValue.setFieldKey(fieldKey);
+        String existingKeyType = existingFieldKey.getFieldType().getTypeName();
+
+        if (existingKeyType.equals("String") || existingKeyType.equals("Number") || existingKeyType.equals("Boolean")) {
+            throw new IllegalArgumentException();
         }
 
-        fieldValue.setKeyName(valueInfoData.getKey());
+        FieldValue fieldValue = new FieldValue();
+        if (existingKeyType.equals("Map")) {
+            if (valueInfoData.getKey() == null) {
+                throw new IllegalArgumentException();
+            }
+            fieldValue.setKeyName(valueInfoData.getKey());
+        }
+        fieldValue.setFieldKey(existingFieldKey);
         fieldValue.setValueName(valueInfoData.getValue());
         fieldValue.setFieldType(fieldTypeRepository.findFieldTypeByTypeName(valueInfoData.getType()));
 
         fieldValueRepository.save(fieldValue);
 
-        addReadNumber(projectId, fieldId);
-        addWriteNumber(projectId, fieldId);
+        addReadWriteNumber(projectId,fieldId,"read");
+        addReadWriteNumber(projectId,fieldId,"write");
 
-        return mapFieldKeyAndValueToFieldDto(fieldKey, fieldValue);
+        return mapFieldKeyAndValueToFieldDto(existingFieldKey, fieldValue);
     }
 
     public FieldDto mapFieldKeyAndValueToFieldDto(FieldKey fieldKey, FieldValue fieldValue) {
@@ -353,54 +332,20 @@ public class FieldServiceImpl implements FieldService {
         }
     }
 
-    public void addReadNumber(String projectId, String fieldId) {
-
+    public void addReadWriteNumber(String projectId, String fieldId, String action) {
         Map<String, String> readWriteLog = new HashMap<>();
         AmazonS3 s3Client = s3Service.createS3Client();
 
         readWriteLog.put("projectId", projectId);
         readWriteLog.put("fieldId", fieldId);
-        readWriteLog.put("action", "write");
+        readWriteLog.put("action", action);
 
         LocalDateTime localDateTime = LocalDateTime.now();
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         readWriteLog.put("Timestamp", date.toString());
 
-        s3Service.uploadLogs(s3Client, projectId, "read", readWriteLog);
-        log.info("projectId : " + projectId + " add 1 read log");
+        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
+        log.info("projectId : " + projectId + " add 1 " + action + " log");
     }
-
-    public void addWriteNumber(String projectId, String fieldId) {
-
-        Map<String, String> readWriteLog = new HashMap<>();
-        AmazonS3 s3Client = s3Service.createS3Client();
-
-        readWriteLog.put("projectId", projectId);
-        readWriteLog.put("fieldId", fieldId);
-        readWriteLog.put("action", "write");
-
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        readWriteLog.put("Timestamp", date.toString());
-
-        s3Service.uploadLogs(s3Client, projectId, "write", readWriteLog);
-        log.info("projectId : " + projectId + " add 1 write log");
-    }
-
-//    public void addDataToElasticsearch(Map<String, Object> data) {
-//        HttpHeaders headers = new HttpHeaders();
-//        RestTemplate restTemplate = new RestTemplate();
-//
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        String credentials = username + ":" + password;
-//        String base64Credentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-//        headers.set("Authorization", "Basic " + base64Credentials);
-//
-//        HttpEntity<String> requestEntity = new HttpEntity<>(data.toString(), headers);
-//        restTemplate.exchange(elasticsearchUrl, HttpMethod.POST, requestEntity, String.class);
-//
-//
-//    }
 
 }

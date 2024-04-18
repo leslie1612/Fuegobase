@@ -18,14 +18,11 @@ public interface FieldService {
                                               String collectionId, String filter,
                                               String value, String type);
 
-    FieldDto renameField(String APIKey, String projectId, String collectionId,
-                     String documentId, String FieldId, FieldKeyData updatedFieldData);
-
     FieldDto updateField(String APIKey, String projectId, String collectionId,
-                         String documentId, String fieldId, ValueInfoData valueInfoData);
+                         String documentId, String fieldId, String valueId, ValueInfoData valueInfoData);
 
     FieldDto addFieldValue(String APIKey, String projectId, String collectionId,
-                         String documentId, String fieldId, String valueId,ValueInfoData valueInfoData);
+                         String documentId, String fieldId, ValueInfoData valueInfoData);
 
     void deleteField(String APIKey, String projectId, String collectionId,
                      String documentId,String fieldId, String valueId);
