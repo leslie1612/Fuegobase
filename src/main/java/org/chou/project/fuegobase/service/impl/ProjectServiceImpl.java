@@ -8,11 +8,14 @@ import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
+import org.chou.project.fuegobase.security.ApiKeyAuthentication;
 import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Service
@@ -28,6 +31,7 @@ public class ProjectServiceImpl implements ProjectService {
         this.projectRepository = projectRepository;
         this.domainNameRepository = domainNameRepository;
     }
+
 
     @Override
     public void createProject(ProjectData projectData) {
@@ -53,7 +57,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void deleteProject(String APIKey, String projectId, HttpServletRequest request) {
-        isDomainValid(projectId, request);
+//        isDomainValid(projectId, request);
 
         projectRepository.findById(Long.parseLong(projectId)).orElseThrow();
         projectRepository.deleteById(Long.parseLong(projectId));
@@ -75,4 +79,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new IllegalAccessError();
         }
     }
+
+
+
 }

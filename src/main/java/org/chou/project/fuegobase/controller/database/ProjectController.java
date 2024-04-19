@@ -1,6 +1,7 @@
 package org.chou.project.fuegobase.controller.database;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/databases/projects")
 public class ProjectController {
@@ -31,6 +33,7 @@ public class ProjectController {
     @PostMapping
     public ResponseEntity<?> createProject(@RequestBody ProjectData projectData) {
         try {
+            log.info("create project");
             projectService.createProject(projectData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (IllegalArgumentException e) {
@@ -39,9 +42,7 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getProjects(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-
-//        String token = authorization.split(" ")[1].trim();
+    public ResponseEntity<?> getProjects() {
         long userId = 1;
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -50,8 +51,7 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<?> deleteProject(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                           @PathVariable("projectId") String projectId,
+    public ResponseEntity<?> deleteProject(@PathVariable("projectId") String projectId,
                                            HttpServletRequest request) {
         try {
             projectService.deleteProject(API_KEY, projectId, request);
