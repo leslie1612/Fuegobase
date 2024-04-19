@@ -30,7 +30,7 @@ public class CollectionServiceImpl implements CollectionService {
     }
 
     @Override
-    public void createCollection(String APIKey, long projectId, CollectionData collectionData) {
+    public void createCollection(long projectId, CollectionData collectionData) {
 
         Project project = projectRepository.findById(projectId).orElseThrow();
         if (isCollectionNameExistOrNot(projectId, collectionData.getName())) {
@@ -46,13 +46,12 @@ public class CollectionServiceImpl implements CollectionService {
     }
 
     @Override
-    public List<Collection> getCollections(String APIKey, String projectId) {
+    public List<Collection> getCollections(String projectId) {
         return collectionRepository.getCollectionsByProjectId(Long.parseLong(projectId));
     }
 
     @Override
-    public Collection updateCollectionById(String APIKey,
-                                           String projectId,
+    public Collection updateCollectionById(String projectId,
                                            String collectionId,
                                            CollectionData updatedCollection) {
 
@@ -68,8 +67,7 @@ public class CollectionServiceImpl implements CollectionService {
     }
 
     @Override
-    public void deleteCollection(String APIKey, String projectId, String collectionId) {
-
+    public void deleteCollection(String projectId, String collectionId) {
         findCollectionByProjectIdAndId(projectId, collectionId);
         collectionRepository.deleteById(Long.parseLong(collectionId));
         log.info("Delete collection by " + collectionId + " successfully!");

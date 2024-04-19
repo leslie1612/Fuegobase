@@ -16,7 +16,6 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class DocumentServiceImpl implements DocumentService {
-
     private final DocumentRepository documentRepository;
     private final CollectionRepository collectionRepository;
 
@@ -27,7 +26,7 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public void createDocument(String APIKey, String projectId, String collectionId, DocumentData documentData) {
+    public void createDocument(String projectId, String collectionId, DocumentData documentData) {
 
         Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
         if (documentRepository.existsByName(documentData.getName())) {
@@ -42,17 +41,13 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<Document> getDocuments(String APIKey, String projectId, String collectionId) {
+    public List<Document> getDocuments(String projectId, String collectionId) {
         Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
         return documentRepository.findDocumentsByCollectionId(c.getId());
     }
 
     @Override
-    public Document updateDocumentById(String APIKey,
-                                       String projectId,
-                                       String collectionId,
-                                       String documentId,
-                                       DocumentData updateDocument) {
+    public Document updateDocumentById(String projectId, String collectionId, String documentId, DocumentData updateDocument) {
 
         Document existingDocument = findDocument(projectId, collectionId, documentId);
         existingDocument.setName(updateDocument.getName());
@@ -61,7 +56,7 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public void deleteDocument(String APIKey, String projectId, String collectionId, String documentId) {
+    public void deleteDocument(String projectId, String collectionId, String documentId) {
         findDocument(projectId, collectionId, documentId);
         documentRepository.deleteById(Long.parseLong(documentId));
         log.info("Delete document by : " + documentId + " successfully!");

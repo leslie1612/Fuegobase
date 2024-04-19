@@ -8,12 +8,8 @@ import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
-import org.chou.project.fuegobase.security.ApiKeyAuthentication;
 import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,13 +48,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<Project> getProjects(long userId) {
+        System.out.println(userId);
         return projectRepository.getProjectsByUserId(userId);
     }
 
     @Override
-    public void deleteProject(String APIKey, String projectId, HttpServletRequest request) {
-//        isDomainValid(projectId, request);
-
+    public void deleteProject(String projectId) {
         projectRepository.findById(Long.parseLong(projectId)).orElseThrow();
         projectRepository.deleteById(Long.parseLong(projectId));
         log.info("Delete project by : " + projectId + " successfully!");
@@ -72,14 +67,5 @@ public class ProjectServiceImpl implements ProjectService {
 
         domainNameRepository.save(domainNameWhitelist);
     }
-
-    public void isDomainValid(String projectId, HttpServletRequest request) {
-        Boolean result = domainNameRepository.existsByProjectIdAndDomainName(Long.parseLong(projectId), request.getServerName());
-        if (!result) {
-            throw new IllegalAccessError();
-        }
-    }
-
-
 
 }

@@ -14,9 +14,8 @@ public interface ProjectService {
 
     List<Project> getProjects(long userId);
 
-    void deleteProject(String APIKey, String projectId, HttpServletRequest request);
+    void deleteProject(String projectId);
 
     void addDomainNameWhiteList(long projectId, DomainNameData domainNameData);
 
-    void isDomainValid(String projectId, HttpServletRequest request);
 }

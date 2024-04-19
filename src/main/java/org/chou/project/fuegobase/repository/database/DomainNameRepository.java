@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface DomainNameRepository extends JpaRepository<DomainNameWhitelist,Long> {
     Boolean existsByProjectIdAndDomainName(long projectId, String domainName);
+    Optional<DomainNameWhitelist> findByDomainNameAndProjectId(String domainName,long projectId);
 }

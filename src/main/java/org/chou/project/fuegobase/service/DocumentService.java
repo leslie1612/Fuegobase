@@ -6,17 +6,11 @@ import org.chou.project.fuegobase.model.database.Document;
 import java.util.List;
 
 public interface DocumentService {
-    void createDocument(String APIKey, String projectId, String collectionId, DocumentData documentData);
+    void createDocument(String projectId, String collectionId, DocumentData documentData);
 
-    List<Document> getDocuments(String APIKey, String projectId, String collectionId);
+    List<Document> getDocuments(String projectId, String collectionId);
 
-    Document updateDocumentById(
-            String APIKey,
-            String projectId,
-            String CollectionID,
-            String documentId,
-            DocumentData updatedDocument
-    );
+    Document updateDocumentById(String projectId, String CollectionID, String documentId, DocumentData updatedDocument);
 
-    void deleteDocument(String APIKey, String projectId, String collectionId, String documentId);
+    void deleteDocument(String projectId, String collectionId, String documentId);
 }

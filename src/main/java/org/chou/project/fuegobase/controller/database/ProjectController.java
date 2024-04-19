@@ -23,7 +23,6 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/databases/projects")
 public class ProjectController {
     private final ProjectService projectService;
-    private String API_KEY = "aaa12345bbb";
 
     @Autowired
     public ProjectController(ProjectService projectService) {
@@ -33,7 +32,6 @@ public class ProjectController {
     @PostMapping
     public ResponseEntity<?> createProject(@RequestBody ProjectData projectData) {
         try {
-            log.info("create project");
             projectService.createProject(projectData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (IllegalArgumentException e) {
@@ -47,14 +45,12 @@ public class ProjectController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new GenericResponse<>(projectService.getProjects(userId)));
-
     }
 
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<?> deleteProject(@PathVariable("projectId") String projectId,
-                                           HttpServletRequest request) {
+    public ResponseEntity<?> deleteProject(@PathVariable("projectId") String projectId) {
         try {
-            projectService.deleteProject(API_KEY, projectId, request);
+            projectService.deleteProject(projectId);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Project not found."));
@@ -62,8 +58,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/whitelist")
-    public ResponseEntity<?> addDomainNameWhitelist(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                                    @PathVariable("projectId") long projectId,
+    public ResponseEntity<?> addDomainNameWhitelist(@PathVariable("projectId") long projectId,
                                                     @RequestBody DomainNameData domainNameData) {
         projectService.addDomainNameWhiteList(projectId, domainNameData);
         return ResponseEntity.status(HttpStatus.CREATED).build();

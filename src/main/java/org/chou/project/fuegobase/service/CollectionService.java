@@ -7,11 +7,11 @@ import org.chou.project.fuegobase.model.database.Collection;
 import java.util.List;
 
 public interface CollectionService {
-    void createCollection(String APIKey, long projectId, CollectionData collectionData);
+    void createCollection(long projectId, CollectionData collectionData);
 
-    List<Collection> getCollections(String APIKey, String projectId);
+    List<Collection> getCollections(String projectId);
 
-    Collection updateCollectionById(String APIKey, String projectId, String collectionID, CollectionData collectionData);
+    Collection updateCollectionById(String projectId, String collectionID, CollectionData collectionData);
 
-    void deleteCollection(String APIKey, String projectId, String collectionId);
+    void deleteCollection(String projectId, String collectionId);
 }

@@ -9,21 +9,18 @@ import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
 import java.util.List;
 
 public interface FieldService {
-    void createField(String APIKey, String projectId, String collectionId,
-                     String documentId, FieldData fieldData);
+    void createField(String projectId, String collectionId, String documentId, FieldData fieldData);
 
-    List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId);
+    List<FieldDto> getFields(String projectId, String collectionId, String documentId);
 
-    List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId,
-                                              String collectionId, String filter,
-                                              String value, String type);
+    List<FilterDocumentDto> getFieldsByFilter(String projectId,String collectionId,
+                                              String filter, String value, String type);
 
-    FieldDto updateField(String APIKey, String projectId, String collectionId,
-                         String documentId, String fieldId, String valueId, ValueInfoData valueInfoData);
+    FieldDto updateField(String projectId, String collectionId, String documentId,
+                         String fieldId, String valueId, ValueInfoData valueInfoData);
 
-    FieldDto addFieldValue(String APIKey, String projectId, String collectionId,
-                         String documentId, String fieldId, ValueInfoData valueInfoData);
+    FieldDto addFieldValue(String projectId, String collectionId, String documentId,
+                           String fieldId, ValueInfoData valueInfoData);
 
-    void deleteField(String APIKey, String projectId, String collectionId,
-                     String documentId,String fieldId, String valueId);
+    void deleteField(String projectId, String collectionId, String documentId, String fieldId, String valueId);
 }

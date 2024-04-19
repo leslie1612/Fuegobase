@@ -54,8 +54,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    @Transactional
-    public void createField(String APIKey, String projectId,
+    public void createField(String projectId,
                             String collectionId, String documentId, FieldData fieldData) {
 
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
@@ -89,7 +88,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public List<FieldDto> getFields(String APIKey, String projectId, String collectionId, String documentId) {
+    public List<FieldDto> getFields(String projectId, String collectionId, String documentId) {
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
 
@@ -100,8 +99,8 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public List<FilterDocumentDto> getFieldsByFilter(String APIKey, String projectId,
-                                                     String collectionId, String filter, String value, String type) {
+    public List<FilterDocumentDto> getFieldsByFilter(String projectId, String collectionId, String filter,
+                                                     String value, String type) {
         collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
         List<Document> documents = fieldKeyRepository.getDocumentsByFilter(collectionId, filter, value, type);
 
@@ -184,7 +183,7 @@ public class FieldServiceImpl implements FieldService {
 
 
     @Override
-    public void deleteField(String APIKey, String projectId, String collectionId,
+    public void deleteField(String projectId, String collectionId,
                             String documentId, String fieldId, String valueId) {
 
         if (valueId != null) {
@@ -201,8 +200,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public FieldDto updateField(String APIKey, String projectId,
-                                String collectionId, String documentId,
+    public FieldDto updateField(String projectId, String collectionId, String documentId,
                                 String fieldId, String valueId, ValueInfoData valueInfoData) {
 
         FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
@@ -224,8 +222,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public FieldDto addFieldValue(String APIKey, String projectId,
-                                  String collectionId, String documentId,
+    public FieldDto addFieldValue(String projectId, String collectionId, String documentId,
                                   String fieldId, ValueInfoData valueInfoData) {
         FieldKey existingFieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 

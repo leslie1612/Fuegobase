@@ -19,7 +19,6 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections/{collectionId}/documents")
 public class DocumentController {
     private DocumentService documentService;
-    private String API_KEY = "aaa12345bbb";
     private ProjectService projectService;
 
     @Autowired
@@ -29,16 +28,12 @@ public class DocumentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createDocument(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                            @PathVariable String projectId,
+    public ResponseEntity<?> createDocument(@PathVariable String projectId,
                                             @PathVariable String collectionId,
-                                            @RequestBody DocumentData documentData,
-                                            HttpServletRequest request) {
+                                            @RequestBody DocumentData documentData) {
 
-//        String APIKey = authorization.split(" ")[1].trim();
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
-            documentService.createDocument(API_KEY, projectId, collectionId, documentData);
+            documentService.createDocument(projectId, collectionId, documentData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
@@ -49,15 +44,12 @@ public class DocumentController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getDocuments(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                          @PathVariable String projectId,
-                                          @PathVariable String collectionId,
-                                          HttpServletRequest request) {
+    public ResponseEntity<?> getDocuments(@PathVariable String projectId,
+                                          @PathVariable String collectionId) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(documentService.getDocuments(API_KEY, projectId, collectionId)));
+                    .body(new GenericResponse<>(documentService.getDocuments(projectId, collectionId)));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
         }
@@ -65,18 +57,15 @@ public class DocumentController {
     }
 
     @PatchMapping("/{documentId}")
-    public ResponseEntity<?> renameDocument(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                            @PathVariable String projectId,
+    public ResponseEntity<?> renameDocument(@PathVariable String projectId,
                                             @PathVariable String collectionId,
                                             @PathVariable String documentId,
-                                            @RequestBody DocumentData updatedDocument,
-                                            HttpServletRequest request) {
+                                            @RequestBody DocumentData updatedDocument) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new GenericResponse<>(
-                            documentService.updateDocumentById(API_KEY, projectId, collectionId, documentId, updatedDocument))
+                            documentService.updateDocumentById(projectId, collectionId, documentId, updatedDocument))
                     );
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));
@@ -84,14 +73,11 @@ public class DocumentController {
     }
 
     @DeleteMapping("/{documentId}")
-    public ResponseEntity<?> deleteDocument(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                            @PathVariable String projectId,
+    public ResponseEntity<?> deleteDocument(@PathVariable String projectId,
                                             @PathVariable String collectionId,
-                                            @PathVariable String documentId,
-                                            HttpServletRequest request) {
+                                            @PathVariable String documentId) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
-            documentService.deleteDocument(API_KEY, projectId, collectionId, documentId);
+            documentService.deleteDocument(projectId, collectionId, documentId);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Document not found"));

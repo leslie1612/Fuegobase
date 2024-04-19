@@ -44,14 +44,21 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
         try {
-            final String APIKey = retrieveToken(request);
-            if (APIKey == null || !authenticationService.validate(APIKey)) {
+            String APIKey = retrieveToken(request);
+            String[] uri = request.getRequestURI().split("/");
+            String projectId = null;
+            if (uri.length > 5) {
+                projectId = uri[5];
+            }
+            if (APIKey == null || projectId == null ||!authenticationService.validate(projectId, APIKey)) {
                 filterChain.doFilter(request, response);
                 return;
             }
             Authentication authentication = authenticationService.getAuthentication(request);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
+
+
         } catch (Exception e) {
             log.error("error" + e.getMessage());
             Map<String, String> errorMsg = new HashMap<>();

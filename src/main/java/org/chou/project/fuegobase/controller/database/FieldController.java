@@ -22,7 +22,6 @@ import java.util.NoSuchElementException;
 public class FieldController {
     private FieldService fieldService;
     private ProjectService projectService;
-    private String API_KEY = "aaa12345bbb";
 
     @Autowired
     public FieldController(FieldService fieldService, ProjectService projectService) {
@@ -31,15 +30,10 @@ public class FieldController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                         @PathVariable String projectId,
-                                         @PathVariable String collectionId,
-                                         @PathVariable String documentId,
-                                         @RequestBody FieldData fieldData,
-                                         HttpServletRequest request) {
+    public ResponseEntity<?> createField(@PathVariable String projectId, @PathVariable String collectionId,
+                                         @PathVariable String documentId, @RequestBody FieldData fieldData) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
-            fieldService.createField(API_KEY, projectId, collectionId, documentId, fieldData);
+            fieldService.createField(projectId, collectionId, documentId, fieldData);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
@@ -48,67 +42,40 @@ public class FieldController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getFields(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                       @PathVariable String projectId,
-                                       @PathVariable String collectionId,
-                                       @PathVariable String documentId,
-                                       HttpServletRequest request) {
+    public ResponseEntity<?> getFields(@PathVariable String projectId, @PathVariable String collectionId,
+                                       @PathVariable String documentId) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(fieldService.getFields(API_KEY, projectId, collectionId, documentId)));
+                    .body(new GenericResponse<>(fieldService.getFields(projectId, collectionId, documentId)));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field not found");
         }
     }
 
-    // update field info
-//    @PatchMapping("/{fieldId}")
-//    public ResponseEntity<?> renameField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-//                                         @PathVariable String projectId,
-//                                         @PathVariable String collectionId,
-//                                         @PathVariable String documentId,
-//                                         @PathVariable String fieldId,
-//                                         @RequestBody FieldKeyData updateKeyData) {
-//
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(new GenericResponse<>(fieldService.renameField(API_KEY, projectId, collectionId, documentId, fieldId, updateKeyData)));
-//    }
-
     @PatchMapping("/{fieldId}/value/{valueId}")
-    public ResponseEntity<?> updateField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                         @PathVariable String projectId,
-                                         @PathVariable String collectionId,
-                                         @PathVariable String documentId,
-                                         @PathVariable String fieldId,
-                                         @PathVariable String valueId,
-                                         @RequestBody ValueInfoData valueInfoData,
-                                         HttpServletRequest request) {
+    public ResponseEntity<?> updateField(@PathVariable String projectId, @PathVariable String collectionId,
+                                         @PathVariable String documentId, @PathVariable String fieldId,
+                                         @PathVariable String valueId, @RequestBody ValueInfoData valueInfoData) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(fieldService.updateField(API_KEY, projectId, collectionId, documentId, fieldId, valueId, valueInfoData)));
+                    .body(new GenericResponse<>(fieldService.updateField(
+                            projectId, collectionId, documentId, fieldId, valueId, valueInfoData)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
         }
     }
 
     @PostMapping("/{fieldId}")
-    public ResponseEntity<?> addFieldValue(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                           @PathVariable String projectId,
-                                           @PathVariable String collectionId,
-                                           @PathVariable String documentId,
-                                           @PathVariable String fieldId,
-                                           @RequestBody ValueInfoData valueInfoData,
-                                           HttpServletRequest request) {
+    public ResponseEntity<?> addFieldValue(@PathVariable String projectId, @PathVariable String collectionId,
+                                           @PathVariable String documentId, @PathVariable String fieldId,
+                                           @RequestBody ValueInfoData valueInfoData) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(fieldService.addFieldValue(API_KEY, projectId, collectionId, documentId, fieldId, valueInfoData)));
+                    .body(new GenericResponse<>(fieldService.addFieldValue(
+                            projectId, collectionId, documentId, fieldId, valueInfoData)));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
         } catch (IllegalArgumentException e) {
@@ -119,16 +86,11 @@ public class FieldController {
 
 
     @DeleteMapping("/{fieldId}")
-    public ResponseEntity<?> deleteField(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-                                         @PathVariable String projectId,
-                                         @PathVariable String collectionId,
-                                         @PathVariable String documentId,
-                                         @PathVariable String fieldId,
-                                         @RequestParam(required = false) String valueId,
-                                         HttpServletRequest request) {
+    public ResponseEntity<?> deleteField(@PathVariable String projectId, @PathVariable String collectionId,
+                                         @PathVariable String documentId, @PathVariable String fieldId,
+                                         @RequestParam(required = false) String valueId) {
         try {
-            projectService.isDomainValid(String.valueOf(projectId), request);
-            fieldService.deleteField(API_KEY, projectId, collectionId, documentId, fieldId, valueId);
+            fieldService.deleteField(projectId, collectionId, documentId, fieldId, valueId);
             return ResponseEntity
                     .status(HttpStatus.NO_CONTENT)
                     .build();

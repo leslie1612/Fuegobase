@@ -7,10 +7,10 @@ import org.springframework.data.repository.query.Param;
 
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-
-    Boolean existsByAPIKey(String APIKey);
+    Boolean existsByIdAndAPIKey(long projectId, String APIKey);
 
     Boolean existsByName(String projectName);
 
