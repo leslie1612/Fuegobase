@@ -9,6 +9,7 @@ import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.ProjectService;
+import org.chou.project.fuegobase.utils.ApiKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +21,21 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final DomainNameRepository domainNameRepository;
-
+    private final ApiKeyGenerator apiKeyGenerator;
 
     @Autowired
-    public ProjectServiceImpl(ProjectRepository projectRepository, DomainNameRepository domainNameRepository) {
+    public ProjectServiceImpl(ProjectRepository projectRepository,
+                              DomainNameRepository domainNameRepository,
+                              ApiKeyGenerator apiKeyGenerator) {
         this.projectRepository = projectRepository;
         this.domainNameRepository = domainNameRepository;
+        this.apiKeyGenerator = apiKeyGenerator;
     }
 
 
     @Override
     public void createProject(ProjectData projectData) {
-        // TODO API key 如何產生
-        String APIKey = "aaa12345bbb";
+        String APIKey = apiKeyGenerator.generateApiKey();
 
         if (projectRepository.existsByName(projectData.getName())) {
             throw new IllegalArgumentException("Name can not be repeated.");
@@ -48,7 +51,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<Project> getProjects(long userId) {
-        System.out.println(userId);
         return projectRepository.getProjectsByUserId(userId);
     }
 
