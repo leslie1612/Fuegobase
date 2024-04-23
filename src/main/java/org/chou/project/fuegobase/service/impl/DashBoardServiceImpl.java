@@ -36,19 +36,15 @@ public class DashBoardServiceImpl implements DashboardService {
     @Override
     public float getStorage(long projectId) {
         float projectSize = projectRepository.countSizeOfProject(projectId);
-        log.info("projectSize: " + projectSize);
-
         float collectionsSize = dashboardRepository.countCollectionsSize(projectId);
-        log.info("collectionsSize" + collectionsSize);
-
         float documentsSize = dashboardRepository.countDocumentsSize(projectId);
-        log.info("documentsSize" + documentsSize);
-
         float fieldKeysSize = dashboardRepository.countFieldKeysSize(projectId);
-        log.info("fieldKeysSize" + fieldKeysSize);
-
         float fieldValueSize = dashboardRepository.countFieldValueSize(projectId);
-        log.info("fieldValueSize" + fieldValueSize);
+        System.out.println(projectSize);
+        System.out.println(collectionsSize);
+        System.out.println(documentsSize);
+        System.out.println(fieldKeysSize);
+        System.out.println(fieldValueSize);
 
         float totalSizeInMB = (projectSize
                 + collectionsSize

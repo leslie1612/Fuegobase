@@ -26,14 +26,8 @@ import static io.micrometer.common.util.StringUtils.isEmpty;
 @Slf4j
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
-
-    //    private final ProjectService projectService;
     private final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    //    @Autowired
-//    public AuthenticationFilter(ProjectService projectService) {
-//        this.projectService = projectService;
-//    }
     private final AuthenticationService authenticationService;
 
     public AuthenticationFilter(AuthenticationService authenticationService) {
@@ -60,9 +54,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
 
         } catch (Exception e) {
-            log.error("error" + e.getMessage());
+            log.error("error " + e.getMessage());
             Map<String, String> errorMsg = new HashMap<>();
-            errorMsg.put("error", e.getMessage());
+            errorMsg.put("error ", e.getMessage());
             handleException(response, HttpStatus.UNAUTHORIZED.value(), errorMsg);
         }
     }

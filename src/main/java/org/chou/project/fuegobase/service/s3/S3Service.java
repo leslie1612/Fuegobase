@@ -13,6 +13,7 @@ import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
@@ -87,8 +88,15 @@ public class S3Service {
         return idCounts;
     }
 
-    @Scheduled(cron = "0 10 0 * * *")
-    public void storeReadLogsIntoDB(AmazonS3 s3Client) {
+    @Scheduled(cron = "0 10 0 * * *", zone = "Asia/Taipei")
+    public void storeReadLogsIntoDB() {
+        BasicAWSCredentials awsCredentials =
+                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
+        AmazonS3 s3Client = AmazonS3ClientBuilder
+                .standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .withRegion(Regions.US_EAST_1)
+                .build();
         Map<String, Integer> readCounts = storeLogsIntoDB(s3Client, "read");
         readCounts.forEach((projectId, count) -> {
             ReadWriteLog readWriteLog = new ReadWriteLog();
@@ -100,8 +108,15 @@ public class S3Service {
         });
     }
 
-    @Scheduled(cron = "0 10 1 * * *")
-    public void storeWriteLogsIntoDB(AmazonS3 s3Client) {
+    @Scheduled(cron = "0 10 1 * * *", zone = "Asia/Taipei")
+    public void storeWriteLogsIntoDB() {
+        BasicAWSCredentials awsCredentials =
+                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
+        AmazonS3 s3Client = AmazonS3ClientBuilder
+                .standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .withRegion(Regions.US_EAST_1)
+                .build();
         Map<String, Integer> readCounts = storeLogsIntoDB(s3Client, "write");
 
         readCounts.forEach((projectId, count) -> {

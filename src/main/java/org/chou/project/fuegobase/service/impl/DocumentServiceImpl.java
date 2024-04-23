@@ -29,7 +29,7 @@ public class DocumentServiceImpl implements DocumentService {
     public void createDocument(String projectId, String collectionId, DocumentData documentData) {
 
         Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
-        if (documentRepository.existsByName(documentData.getName())) {
+        if (documentRepository.existsByNameAndCollectionId(documentData.getName(),Long.parseLong(collectionId))) {
             throw new IllegalArgumentException("Name can not be repeated.");
         }
 

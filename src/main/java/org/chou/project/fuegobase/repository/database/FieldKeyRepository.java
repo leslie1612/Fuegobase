@@ -28,5 +28,7 @@ public interface FieldKeyRepository extends JpaRepository<FieldKey, Long>, Field
             @Param("kid") long fieldId
     );
 
+    Boolean existsByNameAndDocumentId(String name,long documentId);
+
 
 }

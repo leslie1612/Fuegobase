@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-    Boolean existsByName(String DocumentName);
+    Boolean existsByNameAndCollectionId(String DocumentName,long collectionId);
 
     List<Document> findDocumentsByCollectionId(@Param("collectionId") long collectionId);
 

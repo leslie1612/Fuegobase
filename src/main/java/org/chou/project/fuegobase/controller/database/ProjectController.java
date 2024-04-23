@@ -57,10 +57,4 @@ public class ProjectController {
         }
     }
 
-    @GetMapping("/{projectId}/whitelist")
-    public ResponseEntity<?> addDomainNameWhitelist(@PathVariable("projectId") long projectId,
-                                                    @RequestBody DomainNameData domainNameData) {
-        projectService.addDomainNameWhiteList(projectId, domainNameData);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
 }

@@ -54,11 +54,15 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    public void createField(String projectId,
-                            String collectionId, String documentId, FieldData fieldData) {
+    public void createField(String projectId, String collectionId,
+                            String documentId, FieldData fieldData) {
 
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         FieldType fieldKeyType = stringToType(fieldData.getType());
+        if(fieldKeyRepository.existsByNameAndDocumentId(fieldData.getKey(),Long.parseLong(documentId))){
+            throw new IllegalArgumentException("Key can not be repeated.");
+        }
+
 
         FieldKey fieldKey = new FieldKey();
         fieldKey.setDocumentId(document.getId());
@@ -133,26 +137,42 @@ public class FieldServiceImpl implements FieldService {
             valueInfoData.setValueId(fieldProjection.getValueId());
 
             fieldDtoList.forEach(fieldDto -> {
+//                if (fieldProjection.getId() == fieldDto.getId()) {
+//                    if (fieldProjection.getKeyType().equals("Array")) {
+//                        valueInfoData.setType(fieldProjection.getValueType());
+//
+//                        if (fieldDto.getValueInfo() == null) {
+//                            fieldDto.setValueInfo(new ArrayList<>());
+//                        }
+//                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
+//                    } else if (fieldProjection.getKeyType().equals("Map")) {
+//                        valueInfoData.setKey(fieldProjection.getKeyName());
+//                        valueInfoData.setType(fieldProjection.getValueType());
+//
+//                        if (fieldDto.getValueInfo() == null) {
+//                            fieldDto.setValueInfo(new ArrayList<>());
+//                        }
+//                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
+//                    } else {
+//                        valueInfoData.setType(fieldProjection.getKeyType());
+//                        fieldDto.setValueInfo(valueInfoData);
+//                    }
+//                }
+
                 if (fieldProjection.getId() == fieldDto.getId()) {
+
                     if (fieldProjection.getKeyType().equals("Array")) {
                         valueInfoData.setType(fieldProjection.getValueType());
-
-                        if (fieldDto.getValueInfo() == null) {
-                            fieldDto.setValueInfo(new ArrayList<>());
-                        }
-                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
                     } else if (fieldProjection.getKeyType().equals("Map")) {
                         valueInfoData.setKey(fieldProjection.getKeyName());
                         valueInfoData.setType(fieldProjection.getValueType());
-
-                        if (fieldDto.getValueInfo() == null) {
-                            fieldDto.setValueInfo(new ArrayList<>());
-                        }
-                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
                     } else {
                         valueInfoData.setType(fieldProjection.getKeyType());
-                        fieldDto.setValueInfo(valueInfoData);
                     }
+                    if (fieldDto.getValueInfo() == null) {
+                            fieldDto.setValueInfo(new ArrayList<>());
+                        }
+                    ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
                 }
             });
         }
@@ -208,9 +228,9 @@ public class FieldServiceImpl implements FieldService {
 
         String existingFieldKeyType = existingFieldKey.getFieldType().getTypeName();
 
-        if (existingFieldKeyType.equals("Map") || existingFieldKeyType.equals("Array")) {
-            existingFieldValue.setFieldType(stringToType(valueInfoData.getType()));
-        }
+//        if (existingFieldKeyType.equals("Map") || existingFieldKeyType.equals("Array")) {
+//            existingFieldValue.setFieldType(stringToType(valueInfoData.getType()));
+//        }
 
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
@@ -322,7 +342,7 @@ public class FieldServiceImpl implements FieldService {
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         readWriteLog.put("Timestamp", date.toString());
 
-        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
+//        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
         log.info("projectId : " + projectId + " add 1 " + action + " log");
     }
 

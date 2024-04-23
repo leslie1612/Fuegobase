@@ -13,6 +13,7 @@ import org.chou.project.fuegobase.utils.ApiKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -70,4 +71,18 @@ public class ProjectServiceImpl implements ProjectService {
         domainNameRepository.save(domainNameWhitelist);
     }
 
+    @Override
+    public List<DomainNameWhitelist> getDomainWhiteList(long projectId) {
+        return domainNameRepository.findAllByProjectId(projectId);
+//        List<String> domainNames = new ArrayList<>();
+//        for (DomainNameWhitelist domainNameWhitelist : domainNameWhitelists) {
+//            domainNames.add(domainNameWhitelist.getDomainName());
+//        }
+//        return domainNames;
+    }
+
+    @Override
+    public void deleteDomainName(long projectId,long domainNameId) {
+        domainNameRepository.deleteById(domainNameId);
+    }
 }

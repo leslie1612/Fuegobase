@@ -22,14 +22,12 @@ import java.util.NoSuchElementException;
 public class CollectionController {
     private final CollectionService collectionService;
     private final FieldService fieldService;
-    private ProjectService projectService;
 
     @Autowired
     public CollectionController(CollectionService collectionService,
-                                FieldService fieldService, ProjectService projectService) {
+                                FieldService fieldService) {
         this.collectionService = collectionService;
         this.fieldService = fieldService;
-        this.projectService = projectService;
     }
 
     @PostMapping

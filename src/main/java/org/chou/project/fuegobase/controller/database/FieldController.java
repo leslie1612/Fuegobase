@@ -21,12 +21,10 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections/{collectionId}/documents/{documentId}/fields")
 public class FieldController {
     private FieldService fieldService;
-    private ProjectService projectService;
 
     @Autowired
-    public FieldController(FieldService fieldService, ProjectService projectService) {
+    public FieldController(FieldService fieldService) {
         this.fieldService = fieldService;
-        this.projectService = projectService;
     }
 
     @PostMapping
@@ -37,6 +35,8 @@ public class FieldController {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 
     }

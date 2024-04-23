@@ -18,6 +18,7 @@ public interface ReadWriteLogRepository extends JpaRepository<ReadWriteLog, Long
                 FROM project_opertions_daily
                 WHERE `date` >= CURDATE() - INTERVAL 7 DAY
                 AND `date` < CURDATE()
+                AND project_id = :projectId
             """, nativeQuery = true)
     List<ReadWriteLog> findLastWeekReadWriteLogByProjectId(long projectId);
 

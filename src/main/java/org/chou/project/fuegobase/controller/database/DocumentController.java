@@ -19,12 +19,10 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections/{collectionId}/documents")
 public class DocumentController {
     private DocumentService documentService;
-    private ProjectService projectService;
 
     @Autowired
-    public DocumentController(DocumentService documentService,ProjectService projectService) {
+    public DocumentController(DocumentService documentService) {
         this.documentService = documentService;
-        this.projectService = projectService;
     }
 
     @PostMapping
