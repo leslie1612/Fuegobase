@@ -1,26 +1,24 @@
 package org.chou.project.fuegobase.service;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
 import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
 public interface ProjectService {
 
-    void createProject(ProjectData projectData);
+    void createProject(ProjectData projectData, String token);
 
-    List<Project> getProjects(long userId);
+    List<Project> getProjects(String token);
 
     void deleteProject(String projectId);
 
     void addDomainNameWhiteList(long projectId, DomainNameData domainNameData);
 
-   List<DomainNameWhitelist> getDomainWhiteList(long projectId);
+    List<DomainNameWhitelist> getDomainWhiteList(long projectId);
 
-   void deleteDomainName(long projectId,long domainNameId);
+    void deleteDomainName(long projectId, long domainNameId);
 
 }

@@ -39,7 +39,7 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
-                .authorizeHttpRequests((requests) -> requests.requestMatchers("/api/v1/databases/projects/*/**").authenticated()
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/api/v1/databases/projects/**").authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

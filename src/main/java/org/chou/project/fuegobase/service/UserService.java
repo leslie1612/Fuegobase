@@ -1,11 +1,18 @@
 package org.chou.project.fuegobase.service;
 
 import org.chou.project.fuegobase.data.dto.SignInDto;
+import org.chou.project.fuegobase.data.user.SignInForm;
 import org.chou.project.fuegobase.data.user.SignupForm;
+import org.chou.project.fuegobase.model.user.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
     SignInDto signup(SignupForm signupForm) throws UserExistException;
+
+    SignInDto signin(SignInForm signInForm) throws UserNotExistException, UserPasswordMismatchException;
+
+    User getUserByToken(String token);
+
 
     sealed class UserException extends
             Exception permits UserExistException, UserNotExistException, UserPasswordMismatchException {

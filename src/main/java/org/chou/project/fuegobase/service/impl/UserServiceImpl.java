@@ -2,6 +2,7 @@ package org.chou.project.fuegobase.service.impl;
 
 import org.chou.project.fuegobase.data.dto.SignInDto;
 import org.chou.project.fuegobase.data.dto.UserDto;
+import org.chou.project.fuegobase.data.user.SignInForm;
 import org.chou.project.fuegobase.data.user.SignupForm;
 import org.chou.project.fuegobase.middleware.JwtTokenUtil;
 import org.chou.project.fuegobase.model.user.User;
@@ -57,6 +58,30 @@ public class UserServiceImpl implements UserService {
         signInDto.setUserDto(userDto);
 
         return signInDto;
+    }
+
+    @Override
+    public SignInDto signin(SignInForm signInForm) throws UserNotExistException, UserPasswordMismatchException {
+        User user = userRepository.findByEmail(signInForm.getEmail());
+        if (user == null) {
+            throw new UserNotExistException("User Not Found with email : " + signInForm.getEmail());
+        }
+
+        if (!passwordEncoder.matches(signInForm.getPassword(), user.getPassword())) {
+            throw new UserPasswordMismatchException("Wrong Password");
+        }
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setEmail(user.getEmail());
+        userDto.setName(user.getName());
+
+        SignInDto signInDto = new SignInDto();
+        String token = createAccessToken(user);
+        signInDto.setAccessToken(token);
+        signInDto.setAccessExpired(jwtTokenUtil.getExpirationDateFromToken(token).getTime());
+        signInDto.setUserDto(userDto);
+
+        return signInDto;
 
     }
 
@@ -73,5 +98,10 @@ public class UserServiceImpl implements UserService {
         claims.put("email", user.getEmail());
 
         return jwtTokenUtil.generateToken(claims, user.getEmail());
+    }
+
+    public User getUserByToken(String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token);
+        return userRepository.findByEmail(email);
     }
 }

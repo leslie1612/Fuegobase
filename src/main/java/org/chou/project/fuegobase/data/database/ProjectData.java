@@ -5,8 +5,6 @@ import lombok.Data;
 @Data
 public class ProjectData {
 
-    private String userId;
-
     private String name;
 
 }

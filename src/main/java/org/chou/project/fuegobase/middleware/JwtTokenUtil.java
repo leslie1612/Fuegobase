@@ -19,11 +19,11 @@ public class JwtTokenUtil {
 
     private @Value("${jwt.signKey}") String jwtSignKey;
 
-    private @Value("${jwt.expireTimeAsSec}") long jwtExpireTimeAsSec; // 30 day in sec
+    private @Value("${jwt.expireTimeAsSec}") long jwtExpireTimeAsSec;
 
     public Boolean validate(String token) {
-        final String username = getUsernameFromToken(token);
-        return (username != null && !isTokenExpired(token));
+        final String email = getUsernameFromToken(token);
+        return (email != null && !isTokenExpired(token));
     }
 
     public String generateToken(Map<String, Object> payload, String subject) {

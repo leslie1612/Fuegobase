@@ -55,10 +55,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            if (projectId == null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
+
             if (token == null || !jwtTokenUtil.validate(token)) {
                 if (APIKey == null || !authenticationService.validate(projectId, APIKey)) {
                     filterChain.doFilter(request, response);

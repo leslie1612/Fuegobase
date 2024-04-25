@@ -5,9 +5,11 @@ import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
 import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
+import org.chou.project.fuegobase.model.user.User;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.ProjectService;
+import org.chou.project.fuegobase.service.UserService;
 import org.chou.project.fuegobase.utils.ApiKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,27 +23,31 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final DomainNameRepository domainNameRepository;
     private final ApiKeyGenerator apiKeyGenerator;
+    private final UserService userService;
 
     @Autowired
-    public ProjectServiceImpl(ProjectRepository projectRepository,
-                              DomainNameRepository domainNameRepository,
-                              ApiKeyGenerator apiKeyGenerator) {
+    public ProjectServiceImpl(ProjectRepository projectRepository, DomainNameRepository domainNameRepository,
+                              ApiKeyGenerator apiKeyGenerator, UserService userService) {
         this.projectRepository = projectRepository;
         this.domainNameRepository = domainNameRepository;
         this.apiKeyGenerator = apiKeyGenerator;
+        this.userService = userService;
+
     }
 
 
     @Override
-    public void createProject(ProjectData projectData) {
+    public void createProject(ProjectData projectData, String token) {
+
+        User user = userService.getUserByToken(token);
         String APIKey = apiKeyGenerator.generateApiKey();
 
         if (projectRepository.existsByName(projectData.getName())) {
-            throw new IllegalArgumentException("Name can not be repeated.");
+            throw new IllegalArgumentException("Project name can not be repeated.");
         } else {
             Project project = new Project();
             project.setName(projectData.getName());
-            project.setUserId(Long.parseLong(projectData.getUserId()));
+            project.setUserId(user.getId());
             project.setAPIKey(APIKey);
 
             Project savedProject = projectRepository.save(project);
@@ -51,13 +57,13 @@ public class ProjectServiceImpl implements ProjectService {
             domainNameWhitelist.setDomainName("localhost");
 
             domainNameRepository.save(domainNameWhitelist);
-
         }
     }
 
     @Override
-    public List<Project> getProjects(long userId) {
-        return projectRepository.getProjectsByUserId(userId);
+    public List<Project> getProjects(String token) {
+        User user = userService.getUserByToken(token);
+        return projectRepository.getProjectsByUserId(user.getId());
     }
 
     @Override
@@ -79,15 +85,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<DomainNameWhitelist> getDomainWhiteList(long projectId) {
         return domainNameRepository.findAllByProjectId(projectId);
-//        List<String> domainNames = new ArrayList<>();
-//        for (DomainNameWhitelist domainNameWhitelist : domainNameWhitelists) {
-//            domainNames.add(domainNameWhitelist.getDomainName());
-//        }
-//        return domainNames;
     }
 
     @Override
     public void deleteDomainName(long projectId, long domainNameId) {
         domainNameRepository.deleteById(domainNameId);
     }
+
+
 }
