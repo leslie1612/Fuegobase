@@ -1,14 +1,11 @@
 package org.chou.project.fuegobase.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.FieldData;
-import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
-import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
@@ -17,14 +14,7 @@ import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
 import org.chou.project.fuegobase.service.s3.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -59,7 +49,7 @@ public class FieldServiceImpl implements FieldService {
 
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         FieldType fieldKeyType = stringToType(fieldData.getType());
-        if(fieldKeyRepository.existsByNameAndDocumentId(fieldData.getKey(),Long.parseLong(documentId))){
+        if (fieldKeyRepository.existsByNameAndDocumentId(fieldData.getKey(), Long.parseLong(documentId))) {
             throw new IllegalArgumentException("Key can not be repeated.");
         }
 
@@ -86,7 +76,7 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-            addReadWriteNumber(projectId,String.valueOf(savedFieldKey.getId()),"write");
+            addReadWriteNumber(projectId, String.valueOf(savedFieldKey.getId()), "write");
         }
 
     }
@@ -97,7 +87,7 @@ public class FieldServiceImpl implements FieldService {
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
 
         for (FieldDto fieldDto : fieldDtoList) {
-            addReadWriteNumber(projectId,String.valueOf(fieldDto.getId()),"read");
+            addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
         }
         return fieldDtoList;
     }
@@ -117,7 +107,7 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
             for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
-                addReadWriteNumber(projectId,String.valueOf(fieldDto.getId()),"read");
+                addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
             }
             result.add(filterDocumentDto);
         }
@@ -137,28 +127,6 @@ public class FieldServiceImpl implements FieldService {
             valueInfoData.setValueId(fieldProjection.getValueId());
 
             fieldDtoList.forEach(fieldDto -> {
-//                if (fieldProjection.getId() == fieldDto.getId()) {
-//                    if (fieldProjection.getKeyType().equals("Array")) {
-//                        valueInfoData.setType(fieldProjection.getValueType());
-//
-//                        if (fieldDto.getValueInfo() == null) {
-//                            fieldDto.setValueInfo(new ArrayList<>());
-//                        }
-//                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
-//                    } else if (fieldProjection.getKeyType().equals("Map")) {
-//                        valueInfoData.setKey(fieldProjection.getKeyName());
-//                        valueInfoData.setType(fieldProjection.getValueType());
-//
-//                        if (fieldDto.getValueInfo() == null) {
-//                            fieldDto.setValueInfo(new ArrayList<>());
-//                        }
-//                        ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
-//                    } else {
-//                        valueInfoData.setType(fieldProjection.getKeyType());
-//                        fieldDto.setValueInfo(valueInfoData);
-//                    }
-//                }
-
                 if (fieldProjection.getId() == fieldDto.getId()) {
 
                     if (fieldProjection.getKeyType().equals("Array")) {
@@ -170,8 +138,8 @@ public class FieldServiceImpl implements FieldService {
                         valueInfoData.setType(fieldProjection.getKeyType());
                     }
                     if (fieldDto.getValueInfo() == null) {
-                            fieldDto.setValueInfo(new ArrayList<>());
-                        }
+                        fieldDto.setValueInfo(new ArrayList<>());
+                    }
                     ((List<ValueInfoData>) fieldDto.getValueInfo()).add(valueInfoData);
                 }
             });
@@ -209,14 +177,17 @@ public class FieldServiceImpl implements FieldService {
         if (valueId != null) {
             findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
             fieldValueRepository.deleteById(Long.parseLong(valueId));
+            if (fieldValueRepository.findAllByFieldKeyId(Long.parseLong(fieldId)).isEmpty()) {
+                fieldKeyRepository.deleteById(Long.parseLong(fieldId));
+            }
             log.info("Delete value by " + valueId + " successfully!");
         } else {
             findFieldKey(projectId, collectionId, documentId, fieldId);
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             log.info("Delete field by " + fieldId + " successfully!");
         }
-        addReadWriteNumber(projectId,fieldId,"read");
-        addReadWriteNumber(projectId,fieldId,"write");
+        addReadWriteNumber(projectId, fieldId, "read");
+        addReadWriteNumber(projectId, fieldId, "write");
     }
 
     @Override
@@ -226,7 +197,7 @@ public class FieldServiceImpl implements FieldService {
         FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
         FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
 
-        String existingFieldKeyType = existingFieldKey.getFieldType().getTypeName();
+//        String existingFieldKeyType = existingFieldKey.getFieldType().getTypeName();
 
 //        if (existingFieldKeyType.equals("Map") || existingFieldKeyType.equals("Array")) {
 //            existingFieldValue.setFieldType(stringToType(valueInfoData.getType()));
@@ -235,8 +206,8 @@ public class FieldServiceImpl implements FieldService {
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-        addReadWriteNumber(projectId,fieldId,"read");
-        addReadWriteNumber(projectId,fieldId,"write");
+        addReadWriteNumber(projectId, fieldId, "read");
+        addReadWriteNumber(projectId, fieldId, "write");
 
         return mapFieldKeyAndValueToFieldDto(existingFieldKey, existingFieldValue);
     }
@@ -265,8 +236,8 @@ public class FieldServiceImpl implements FieldService {
 
         fieldValueRepository.save(fieldValue);
 
-        addReadWriteNumber(projectId,fieldId,"read");
-        addReadWriteNumber(projectId,fieldId,"write");
+        addReadWriteNumber(projectId, fieldId, "read");
+        addReadWriteNumber(projectId, fieldId, "write");
 
         return mapFieldKeyAndValueToFieldDto(existingFieldKey, fieldValue);
     }

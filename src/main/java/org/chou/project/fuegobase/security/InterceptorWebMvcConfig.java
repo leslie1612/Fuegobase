@@ -1,4 +1,4 @@
-package org.chou.project.fuegobase.config;
+package org.chou.project.fuegobase.security;
 
 import org.chou.project.fuegobase.middleware.DomainInterceptor;
 import org.chou.project.fuegobase.service.AuthenticationService;
@@ -17,6 +17,7 @@ public class InterceptorWebMvcConfig implements WebMvcConfigurer {
     public InterceptorWebMvcConfig(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
     }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new DomainInterceptor(authenticationService)).addPathPatterns("/api/v1/databases/projects/*/**");

@@ -1,6 +1,5 @@
 package org.chou.project.fuegobase.service.impl;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
@@ -13,7 +12,6 @@ import org.chou.project.fuegobase.utils.ApiKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -46,7 +44,14 @@ public class ProjectServiceImpl implements ProjectService {
             project.setUserId(Long.parseLong(projectData.getUserId()));
             project.setAPIKey(APIKey);
 
-            projectRepository.save(project);
+            Project savedProject = projectRepository.save(project);
+
+            DomainNameWhitelist domainNameWhitelist = new DomainNameWhitelist();
+            domainNameWhitelist.setProjectId(savedProject.getId());
+            domainNameWhitelist.setDomainName("localhost");
+
+            domainNameRepository.save(domainNameWhitelist);
+
         }
     }
 
@@ -82,7 +87,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void deleteDomainName(long projectId,long domainNameId) {
+    public void deleteDomainName(long projectId, long domainNameId) {
         domainNameRepository.deleteById(domainNameId);
     }
 }
