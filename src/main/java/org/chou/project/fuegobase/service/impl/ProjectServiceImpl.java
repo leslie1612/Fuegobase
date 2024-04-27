@@ -3,6 +3,7 @@ package org.chou.project.fuegobase.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
+import org.chou.project.fuegobase.data.dto.DomainNameListDto;
 import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.model.user.User;
@@ -83,8 +84,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<DomainNameWhitelist> getDomainWhiteList(long projectId) {
-        return domainNameRepository.findAllByProjectId(projectId);
+    public DomainNameListDto getDomainWhiteList(long projectId) {
+        DomainNameListDto domainNameListDto = new DomainNameListDto();
+
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        List<DomainNameWhitelist> domainNameWhitelists = domainNameRepository.findAllByProjectId(projectId);
+
+        domainNameListDto.setApiKey(project.getAPIKey());
+        domainNameListDto.setDomainNameWhitelist(domainNameWhitelists);
+
+        return domainNameListDto;
     }
 
     @Override

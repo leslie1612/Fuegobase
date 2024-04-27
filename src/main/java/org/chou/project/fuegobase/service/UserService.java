@@ -13,7 +13,6 @@ public interface UserService extends UserDetailsService {
 
     User getUserByToken(String token);
 
-
     sealed class UserException extends
             Exception permits UserExistException, UserNotExistException, UserPasswordMismatchException {
         public UserException(String message) {
