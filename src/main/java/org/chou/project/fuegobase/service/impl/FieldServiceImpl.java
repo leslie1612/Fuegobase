@@ -1,46 +1,50 @@
 package org.chou.project.fuegobase.service.impl;
 
-import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.FieldData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
+import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.model.database.FieldKey;
 import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
+import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
 import org.chou.project.fuegobase.service.s3.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FieldServiceImpl implements FieldService {
+    //    private static final Logger logger = LoggerFactory.getLogger(FieldServiceImpl.class);
     private CollectionRepository collectionRepository;
     private DocumentRepository documentRepository;
     private FieldTypeRepository fieldTypeRepository;
     private FieldKeyRepository fieldKeyRepository;
     private FieldValueRepository fieldValueRepository;
+    private ReadWriteLogRepository readWriteLogRepository;
     private S3Service s3Service;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository, S3Service s3Service) {
+                            FieldValueRepository fieldValueRepository, S3Service s3Service,
+                            ReadWriteLogRepository readWriteLogRepository) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
         this.fieldKeyRepository = fieldKeyRepository;
         this.fieldValueRepository = fieldValueRepository;
         this.s3Service = s3Service;
+        this.readWriteLogRepository = readWriteLogRepository;
     }
 
     @Override
@@ -76,8 +80,9 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-            addReadWriteNumber(projectId, String.valueOf(savedFieldKey.getId()), "write");
+
         }
+        addReadWriteNumber(projectId, String.valueOf(savedFieldKey.getId()), 0, valueInfoDataList.size());
 
     }
 
@@ -87,7 +92,7 @@ public class FieldServiceImpl implements FieldService {
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
 
         for (FieldDto fieldDto : fieldDtoList) {
-            addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
+            addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), 1, 0);
         }
         return fieldDtoList;
     }
@@ -107,7 +112,7 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
             for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
-                addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
+                addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), 1, 0);
             }
             result.add(filterDocumentDto);
         }
@@ -186,8 +191,8 @@ public class FieldServiceImpl implements FieldService {
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             log.info("Delete field by " + fieldId + " successfully!");
         }
-        addReadWriteNumber(projectId, fieldId, "read");
-        addReadWriteNumber(projectId, fieldId, "write");
+        addReadWriteNumber(projectId, fieldId, 1, 1);
+
     }
 
     @Override
@@ -200,8 +205,7 @@ public class FieldServiceImpl implements FieldService {
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-        addReadWriteNumber(projectId, fieldId, "read");
-        addReadWriteNumber(projectId, fieldId, "write");
+        addReadWriteNumber(projectId, fieldId, 1, 1);
 
         return mapFieldKeyAndValueToFieldDto(existingFieldKey, existingFieldValue);
     }
@@ -230,8 +234,7 @@ public class FieldServiceImpl implements FieldService {
 
         fieldValueRepository.save(fieldValue);
 
-        addReadWriteNumber(projectId, fieldId, "read");
-        addReadWriteNumber(projectId, fieldId, "write");
+        addReadWriteNumber(projectId, fieldId, 0, 1);
 
         return mapFieldKeyAndValueToFieldDto(existingFieldKey, fieldValue);
     }
@@ -295,20 +298,42 @@ public class FieldServiceImpl implements FieldService {
         }
     }
 
-    public void addReadWriteNumber(String projectId, String fieldId, String action) {
+    public void addReadWriteNumber(String projectId, String fieldId, int readTimes, int writeTimes) {
         Map<String, String> readWriteLog = new HashMap<>();
-        AmazonS3 s3Client = s3Service.createS3Client();
+//        AmazonS3 s3Client = s3Service.createS3Client();
 
-        readWriteLog.put("projectId", projectId);
-        readWriteLog.put("fieldId", fieldId);
-        readWriteLog.put("action", action);
+//        readWriteLog.put("projectId", projectId);
+//        readWriteLog.put("fieldId", fieldId);
+//        readWriteLog.put("action", action);
+//
+//        LocalDateTime localDateTime = LocalDateTime.now();
+//        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+//        readWriteLog.put("Timestamp", date.toString());
 
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        readWriteLog.put("Timestamp", date.toString());
+//        s3Service.uploadLogs(projectId, action, readWriteLog);
 
-        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
-        log.info("projectId : " + projectId + " add 1 " + action + " log");
+
+        ReadWriteLog existingLog = readWriteLogRepository.findByDateAndProjectId(LocalDate.now(), Long.parseLong(projectId)).orElse(null);
+        if (existingLog == null) {
+            ReadWriteLog readWriteLogData = new ReadWriteLog();
+            readWriteLogData.setProjectId(Long.parseLong(projectId));
+            readWriteLogData.setDate(LocalDate.now());
+            readWriteLogData.setReadCount(readTimes);
+            readWriteLogData.setWriteCount(writeTimes);
+
+            readWriteLogRepository.save(readWriteLogData);
+        } else {
+            existingLog.setReadCount(existingLog.getReadCount() + readTimes);
+            existingLog.setWriteCount(existingLog.getWriteCount() + writeTimes);
+
+            readWriteLogRepository.save(existingLog);
+        }
+
+//        logger.info("projectId" + projectId + " delete value by " + valueId + " successfully!");
+//        logger.info("projectId" + projectId + " add 1 read number");
+//        logger.info("projectId" + projectId + " add 1 write number");
+//        log.info("projectId : " + projectId + " add read: " + readTimes + " add write: " + writeTimes);
+
     }
 
 }

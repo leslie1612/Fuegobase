@@ -72,7 +72,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     userDetails, null, userDetails.getAuthorities());
             authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
-            log.info("token verify OK: " + userDetails.getUsername());
+//            log.info("token verify OK: " + userDetails.getUsername());
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             log.error("error " + e.getMessage());

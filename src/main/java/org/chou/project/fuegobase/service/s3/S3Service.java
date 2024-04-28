@@ -1,6 +1,5 @@
 package org.chou.project.fuegobase.service.s3;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
@@ -16,42 +15,44 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
 public class S3Service {
+    private static final String KEY_PREFIX = "logs/";
+    private final AmazonS3 s3Client;
     @Value("${s3.access.key}")
     private String s3AccessKey;
-
     @Value("${s3.secret.key}")
     private String s3SecretKey;
-
     @Value("${s3.bucket.name}")
     private String bucketName;
-    private static final String KEY_PREFIX = "logs/";
-
     private ReadWriteLogRepository readWriteLogRepository;
 
-    public S3Service(ReadWriteLogRepository readWriteLogRepository) {
+    public S3Service(ReadWriteLogRepository readWriteLogRepository, AmazonS3 s3Client) {
         this.readWriteLogRepository = readWriteLogRepository;
+        this.s3Client = s3Client;
+
     }
 
-    public AmazonS3 createS3Client() {
-        BasicAWSCredentials awsCredentials =
-                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
-        AWSCredentials credentials = awsCredentials;
-        AmazonS3 s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .withRegion(Regions.US_EAST_1)
-                .build();
+//    public AmazonS3 createS3Client() {
+//        BasicAWSCredentials awsCredentials =
+//                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
+//        AWSCredentials credentials = awsCredentials;
+//        AmazonS3 s3Client = AmazonS3ClientBuilder
+//                .standard()
+//                .withCredentials(new AWSStaticCredentialsProvider(credentials))
+//                .withRegion(Regions.US_EAST_1)
+//                .build();
+//
+//        return s3Client;
+//    }
 
-        return s3Client;
-    }
-
-    public void uploadLogs(AmazonS3 s3Client, String projectId, String action, Map<String, String> logs) {
+    public void uploadLogs(String projectId, String action, Map<String, String> logs) {
         try {
+//            AmazonS3 s3Client = awsConfig.amazonS3();
             // Convert logs to byte array
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
@@ -60,6 +61,7 @@ public class S3Service {
             byte[] bytes = byteStream.toByteArray();
 
             // upload to S3
+//            File file = new File("logs/myapp.log");
             String key = KEY_PREFIX + LocalDate.now() + "/" + action + "/" + projectId + "/" + System.currentTimeMillis() + ".log";
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(bytes.length);
