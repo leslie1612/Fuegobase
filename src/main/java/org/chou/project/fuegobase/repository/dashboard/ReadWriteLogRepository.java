@@ -1,12 +1,10 @@
 package org.chou.project.fuegobase.repository.dashboard;
 
 import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 public interface ReadWriteLogRepository extends JpaRepository<ReadWriteLog, Long> {

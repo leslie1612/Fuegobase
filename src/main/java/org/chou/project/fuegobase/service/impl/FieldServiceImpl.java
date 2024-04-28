@@ -307,8 +307,8 @@ public class FieldServiceImpl implements FieldService {
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         readWriteLog.put("Timestamp", date.toString());
 
-        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
-        log.info("projectId : " + projectId + " add 1 " + action + " log");
+//        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
+//        log.info("projectId : " + projectId + " add 1 " + action + " log");
     }
 
 }
