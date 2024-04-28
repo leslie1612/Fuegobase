@@ -197,12 +197,6 @@ public class FieldServiceImpl implements FieldService {
         FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
         FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
 
-//        String existingFieldKeyType = existingFieldKey.getFieldType().getTypeName();
-
-//        if (existingFieldKeyType.equals("Map") || existingFieldKeyType.equals("Array")) {
-//            existingFieldValue.setFieldType(stringToType(valueInfoData.getType()));
-//        }
-
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
@@ -313,7 +307,7 @@ public class FieldServiceImpl implements FieldService {
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         readWriteLog.put("Timestamp", date.toString());
 
-//        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
+        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
         log.info("projectId : " + projectId + " add 1 " + action + " log");
     }
 

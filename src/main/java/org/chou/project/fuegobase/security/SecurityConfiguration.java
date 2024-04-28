@@ -3,6 +3,7 @@ package org.chou.project.fuegobase.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.middleware.AuthenticationFilter;
+import org.chou.project.fuegobase.service.AuthenticationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -28,9 +29,11 @@ import java.util.Collections;
 @EnableMethodSecurity
 public class SecurityConfiguration {
     private final AuthenticationFilter authenticationFilter;
+    private final AuthenticationService authenticationService;
 
-    public SecurityConfiguration(AuthenticationFilter authenticationFilter) {
+    public SecurityConfiguration(AuthenticationFilter authenticationFilter, AuthenticationService authenticationService) {
         this.authenticationFilter = authenticationFilter;
+        this.authenticationService = authenticationService;
     }
 
     @Bean

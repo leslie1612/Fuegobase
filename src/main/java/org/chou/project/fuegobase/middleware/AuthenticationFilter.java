@@ -50,14 +50,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         String[] uri = request.getRequestURI().split("/");
         String projectId = null;
-        if (uri.length > 5) {
-            projectId = uri[5];
-        }
 
         try {
+            if (uri.length > 5) {
+                projectId = uri[5];
+            }
 
             if (token == null || !jwtTokenUtil.validate(token)) {
-                if (APIKey == null || !authenticationService.validate(projectId, APIKey)) {
+                if (APIKey == null || projectId == null || !authenticationService.validate(projectId, APIKey)) {
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -72,53 +72,15 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     userDetails, null, userDetails.getAuthorities());
             authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
-            logger.debug("token verify OK: " + userDetails.getUsername());
+            log.info("token verify OK: " + userDetails.getUsername());
             filterChain.doFilter(request, response);
-        }
-//        try {
-//
-//            if (APIKey == null || projectId == null || !authenticationService.validate(projectId, APIKey)) {
-//                filterChain.doFilter(request, response);
-//                return;
-//            }
-//            Authentication authentication = authenticationService.getAuthentication(request);
-//            SecurityContextHolder.getContext().setAuthentication(authentication);
-//            filterChain.doFilter(request, response);
-//
-//        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("error " + e.getMessage());
             Map<String, String> errorMsg = new HashMap<>();
             errorMsg.put("error ", e.getMessage());
             handleException(response, HttpStatus.UNAUTHORIZED.value(), errorMsg);
         }
     }
-
-//    @Override
-//    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-//            throws IOException, ServletException {
-//        try {
-//            String APIKey = retrieveToken(request);
-//            String[] uri = request.getRequestURI().split("/");
-//            String projectId = null;
-//            if (uri.length > 5) {
-//                projectId = uri[5];
-//            }
-//            if (APIKey == null || projectId == null || !authenticationService.validate(projectId, APIKey)) {
-//                filterChain.doFilter(request, response);
-//                return;
-//            }
-//            Authentication authentication = authenticationService.getAuthentication(request);
-//            SecurityContextHolder.getContext().setAuthentication(authentication);
-//            filterChain.doFilter(request, response);
-//
-//        } catch (Exception e) {
-//            log.error("error " + e.getMessage());
-//            Map<String, String> errorMsg = new HashMap<>();
-//            errorMsg.put("error ", e.getMessage());
-//            handleException(response, HttpStatus.UNAUTHORIZED.value(), errorMsg);
-//        }
-//    }
 
     private void handleException(HttpServletResponse response, int status, Map<String, String> message)
             throws IOException {

@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class SettingsController {
 
     private ProjectService projectService;
+
     @Autowired
-    public SettingsController(ProjectService projectService){
+    public SettingsController(ProjectService projectService) {
         this.projectService = projectService;
     }
+
     @PostMapping("/api/v1/databases/whitelist/{projectId}")
     public ResponseEntity<?> addDomainNameWhitelist(@PathVariable("projectId") long projectId,
                                                     @RequestBody DomainNameData domainNameData) {
@@ -31,7 +33,8 @@ public class SettingsController {
     @DeleteMapping("/api/v1/databases/whitelist/{projectId}/domain/{domainNameId}")
     public ResponseEntity<?> deleteDomainNameWhitelist(@PathVariable("projectId") long projectId,
                                                        @PathVariable("domainNameId") long domainNameId) {
-        projectService.deleteDomainName(projectId,domainNameId);
+        projectService.deleteDomainName(projectId, domainNameId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
 }

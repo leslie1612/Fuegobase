@@ -2,17 +2,13 @@ package org.chou.project.fuegobase.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
-import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.security.ApiKeyAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 @Service
 @Slf4j
@@ -36,6 +32,7 @@ public class AuthenticationService {
     }
 
     public Boolean domainValidate(String domain, String projectId) {
+
         return domainNameRepository.findByDomainNameAndProjectId(domain, Long.parseLong(projectId)).orElse(null) != null;
     }
 
