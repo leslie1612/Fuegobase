@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <define name="hostname"
+            class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
+
+    <contextName>${hostname}</contextName>
+    <!-- for output on console -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                [logback] %d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+
+    <!-- for output in a log file -->
+    <appender name="FILEOUT"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/readwrite.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                [logback] %d{yyyy-MM-dd HH:mm:ss} - %msg%n
+            </Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{yyyy-MM-dd_HH-mm-ss}_${hostname}.readwrite.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="org.chou.project.fuegobase.service.impl.FieldServiceImpl" level="info" additivity="false">
+        <appender-ref ref="FILEOUT"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

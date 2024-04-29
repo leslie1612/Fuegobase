@@ -5,17 +5,20 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import lombok.extern.slf4j.Slf4j;
-import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -37,106 +40,31 @@ public class S3Service {
 
     }
 
-//    public AmazonS3 createS3Client() {
-//        BasicAWSCredentials awsCredentials =
-//                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
-//        AWSCredentials credentials = awsCredentials;
-//        AmazonS3 s3Client = AmazonS3ClientBuilder
-//                .standard()
-//                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-//                .withRegion(Regions.US_EAST_1)
-//                .build();
-//
-//        return s3Client;
-//    }
-
-    public void uploadLogs(String projectId, String action, Map<String, String> logs) {
+    @Scheduled(cron = "0 15 16 * * *", zone = "Asia/Taipei")
+    public void uploadLogs() {
         try {
-//            AmazonS3 s3Client = awsConfig.amazonS3();
-            // Convert logs to byte array
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-            objectStream.writeObject(logs);
-            objectStream.close();
-            byte[] bytes = byteStream.toByteArray();
+            BasicAWSCredentials awsCredentials =
+                    new BasicAWSCredentials(s3AccessKey, s3SecretKey);
+            AmazonS3 s3Client = AmazonS3ClientBuilder
+                    .standard()
+                    .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                    .withRegion(Regions.US_EAST_1)
+                    .build();
 
-            // upload to S3
-//            File file = new File("logs/myapp.log");
-            String key = KEY_PREFIX + LocalDate.now() + "/" + action + "/" + projectId + "/" + System.currentTimeMillis() + ".log";
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(bytes.length);
-            s3Client.putObject(new PutObjectRequest(bucketName, key, new ByteArrayInputStream(bytes), metadata));
-        } catch (IOException e) {
+            File logsDir = new File("logs/");
+            for (File logFile : logsDir.listFiles()) {
+                String fileName = logFile.getName();
+                String key = KEY_PREFIX + fileName;
+                System.out.println(fileName);
+
+                if (fileName.startsWith(LocalDate.now().minusDays(1).toString())) {
+                    System.out.println("get");
+                    s3Client.putObject(new PutObjectRequest(bucketName, key, logFile));
+                }
+            }
+        } catch (Exception e) {
             log.error("Upload log fail: " + e.getMessage());
         }
-    }
-
-    public Map<String, Integer> storeLogsIntoDB(AmazonS3 s3Client, String action) {
-        ListObjectsV2Request request = new ListObjectsV2Request()
-                .withBucketName(bucketName)
-                .withPrefix(KEY_PREFIX + LocalDate.now().minusDays(1) + "/" + action);
-
-        ListObjectsV2Result result = s3Client.listObjectsV2(request);
-        Map<String, Integer> idCounts = new HashMap<>();
-
-        for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
-            String[] logInfo = objectSummary.getKey().split("/");
-
-            if (logInfo.length >= 5) {
-                String logProjectId = logInfo[3];
-                idCounts.merge(logProjectId, 1, Integer::sum);
-            }
-        }
-        return idCounts;
-    }
-
-    @Scheduled(cron = "0 10 0 * * *", zone = "Asia/Taipei")
-    public void storeReadLogsIntoDB() {
-        BasicAWSCredentials awsCredentials =
-                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
-        AmazonS3 s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                .withRegion(Regions.US_EAST_1)
-                .build();
-        Map<String, Integer> readCounts = storeLogsIntoDB(s3Client, "read");
-        readCounts.forEach((projectId, count) -> {
-            ReadWriteLog readWriteLog = new ReadWriteLog();
-            readWriteLog.setProjectId(Long.parseLong(projectId));
-            readWriteLog.setReadCount(count);
-            readWriteLog.setDate(LocalDate.now().minusDays(1));
-
-            readWriteLogRepository.save(readWriteLog);
-        });
-    }
-
-    @Scheduled(cron = "0 10 1 * * *", zone = "Asia/Taipei")
-    public void storeWriteLogsIntoDB() {
-        BasicAWSCredentials awsCredentials =
-                new BasicAWSCredentials(s3AccessKey, s3SecretKey);
-        AmazonS3 s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                .withRegion(Regions.US_EAST_1)
-                .build();
-        Map<String, Integer> readCounts = storeLogsIntoDB(s3Client, "write");
-
-        readCounts.forEach((projectId, count) -> {
-
-            ReadWriteLog existingRecord = readWriteLogRepository
-                    .findReadWriteLogByProjectIdAndDate(Long.parseLong(projectId), LocalDate.now().minusDays(1));
-            if (existingRecord != null) {
-                existingRecord.setWriteCount(count);
-                readWriteLogRepository.save(existingRecord);
-            } else {
-                ReadWriteLog readWriteLog = new ReadWriteLog();
-                readWriteLog.setProjectId(Long.parseLong(projectId));
-                readWriteLog.setWriteCount(count);
-                readWriteLog.setDate(LocalDate.now().minusDays(1));
-
-                readWriteLogRepository.save(readWriteLog);
-            }
-        });
     }
 
     public void downloadAndDeserializeLogs(AmazonS3 s3Client, String key) {
