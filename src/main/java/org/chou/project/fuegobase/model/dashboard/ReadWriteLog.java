@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 
 @Entity
@@ -30,7 +29,7 @@ public class ReadWriteLog {
     @Column(name = "write_count")
     private int writeCount;
 
-    @Column(name = "date")
+    @Column(name = "creation_date")
     private LocalDate date;
 
 }

@@ -1,6 +1,5 @@
 package org.chou.project.fuegobase.controller.dashboard;
 
-import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.service.DashboardService;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Slf4j
 @RestController
@@ -44,17 +43,20 @@ public class DashboardController {
     }
 
     @GetMapping("/count/readwrite/{id}")
-    public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") long projectId){
+    public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") long projectId) {
         return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getLastWeekReadWriteCount(projectId)));
     }
 
 
-//    @GetMapping("/count/test1")
-//    public void testGetReadLogFromS3() {
+    @GetMapping("/count/test1")
+    public void testGetReadLogFromS3() {
+        System.out.println("start" + System.currentTimeMillis());
 //        AmazonS3 s3Client = s3Service.createS3Client();
-//        s3Service.storeReadLogsIntoDB(s3Client);
-//
-//    }
+        s3Service.uploadLogs();
+        System.out.println("done" + System.currentTimeMillis());
+        System.out.println(LocalDate.now().minusDays(1).toString());
+        System.out.println(LocalDate.now().toString());
+    }
 
 //    @GetMapping("/count/test2")
 //    public void testGetWriteLogFromS3(){

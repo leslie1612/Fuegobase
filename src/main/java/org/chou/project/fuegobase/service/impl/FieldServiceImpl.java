@@ -1,6 +1,5 @@
 package org.chou.project.fuegobase.service.impl;
 
-import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.FieldData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
@@ -12,7 +11,8 @@ import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
-import org.chou.project.fuegobase.service.s3.S3Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,23 +24,22 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FieldServiceImpl implements FieldService {
+    private static final Logger logger = LoggerFactory.getLogger(FieldServiceImpl.class);
     private CollectionRepository collectionRepository;
     private DocumentRepository documentRepository;
     private FieldTypeRepository fieldTypeRepository;
     private FieldKeyRepository fieldKeyRepository;
     private FieldValueRepository fieldValueRepository;
-    private S3Service s3Service;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository, S3Service s3Service) {
+                            FieldValueRepository fieldValueRepository) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
         this.fieldKeyRepository = fieldKeyRepository;
         this.fieldValueRepository = fieldValueRepository;
-        this.s3Service = s3Service;
     }
 
     @Override
@@ -77,8 +76,8 @@ public class FieldServiceImpl implements FieldService {
 
             fieldValueRepository.save(fieldValue);
             addReadWriteNumber(projectId, String.valueOf(savedFieldKey.getId()), "write");
-        }
 
+        }
     }
 
     @Override
@@ -297,7 +296,6 @@ public class FieldServiceImpl implements FieldService {
 
     public void addReadWriteNumber(String projectId, String fieldId, String action) {
         Map<String, String> readWriteLog = new HashMap<>();
-        AmazonS3 s3Client = s3Service.createS3Client();
 
         readWriteLog.put("projectId", projectId);
         readWriteLog.put("fieldId", fieldId);
@@ -307,8 +305,8 @@ public class FieldServiceImpl implements FieldService {
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         readWriteLog.put("Timestamp", date.toString());
 
-//        s3Service.uploadLogs(s3Client, projectId, action, readWriteLog);
-//        log.info("projectId : " + projectId + " add 1 " + action + " log");
+
+        logger.info(projectId + "/" + action + "/" + fieldId + "/once");
     }
 
 }
