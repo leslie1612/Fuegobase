@@ -179,11 +179,9 @@ public class FieldServiceImpl implements FieldService {
             if (fieldValueRepository.findAllByFieldKeyId(Long.parseLong(fieldId)).isEmpty()) {
                 fieldKeyRepository.deleteById(Long.parseLong(fieldId));
             }
-            log.info("Delete value by " + valueId + " successfully!");
         } else {
             findFieldKey(projectId, collectionId, documentId, fieldId);
             fieldKeyRepository.deleteById(Long.parseLong(fieldId));
-            log.info("Delete field by " + fieldId + " successfully!");
         }
         addReadWriteNumber(projectId, fieldId, "read");
         addReadWriteNumber(projectId, fieldId, "write");
@@ -305,7 +303,7 @@ public class FieldServiceImpl implements FieldService {
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         readWriteLog.put("Timestamp", date.toString());
 
-        logger.info(projectId + "/" + action + "/" + fieldId + "/once");
+        logger.info("/" + projectId + "/" + action + "/" + fieldId + "/once");
     }
 
 }

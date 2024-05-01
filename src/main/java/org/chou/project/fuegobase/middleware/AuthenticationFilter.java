@@ -52,6 +52,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String projectId = null;
 
         try {
+            System.out.println("uri: " + uri);
             if (uri.length > 5) {
                 projectId = uri[5];
             }

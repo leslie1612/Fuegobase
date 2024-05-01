@@ -25,7 +25,7 @@
             </Pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd_HH-mm-ss}_${hostname}.readwrite.log</fileNamePattern>
+            <fileNamePattern>logs/%d{yyyy-MM-dd}_${hostname}.readwrite.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>
