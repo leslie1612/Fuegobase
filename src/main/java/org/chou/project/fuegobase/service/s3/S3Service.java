@@ -40,7 +40,7 @@ public class S3Service {
 
     }
 
-    @Scheduled(cron = "0 15 16 * * *", zone = "Asia/Taipei")
+    @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Taipei")
     public void uploadLogs() {
         try {
             BasicAWSCredentials awsCredentials =
@@ -55,10 +55,10 @@ public class S3Service {
             for (File logFile : logsDir.listFiles()) {
                 String fileName = logFile.getName();
                 String key = KEY_PREFIX + fileName;
-                System.out.println(fileName);
+
 
                 if (fileName.startsWith(LocalDate.now().minusDays(1).toString())) {
-                    System.out.println("get");
+                    log.info("upload log to S3");
                     s3Client.putObject(new PutObjectRequest(bucketName, key, logFile));
                 }
             }
