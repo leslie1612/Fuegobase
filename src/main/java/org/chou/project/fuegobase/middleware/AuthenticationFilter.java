@@ -42,12 +42,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
-        String APIKey = retrieveAPIKey(request);
-        String token = retrieveToken(request);
 
+        String APIKey = retrieveAPIKey(request);
+        log.info("APIKey : " + APIKey);
+        String token = retrieveToken(request);
+        log.info("token : " + token);
+        
         String[] uri = request.getRequestURI().split("/");
         String projectId = null;
 
@@ -56,24 +60,23 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 projectId = uri[5];
             }
 
-            if (token == null || !jwtTokenUtil.validate(token)) {
-                if (APIKey == null || projectId == null || !authenticationService.validate(projectId, APIKey)) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
+            // check jwt
+            if (token != null && jwtTokenUtil.validate(token)) {
+                UserDetails userDetails = userRepository.getUserDetailsByToken(token);
+                UsernamePasswordAuthenticationToken authAfterSuccessLogin = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
+                log.info("token verify OK: " + userDetails.getUsername());
+            }
+            // check APIKey and domain
+            if (APIKey != null && authenticationService.validate(request, projectId, APIKey)) {
                 Authentication authentication = authenticationService.getAuthentication(request);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                filterChain.doFilter(request, response);
-                return;
+                log.info("api key validate success");
             }
-
-            UserDetails userDetails = userRepository.getUserDetailsByToken(token);
-            UsernamePasswordAuthenticationToken authAfterSuccessLogin = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
-//            log.info("token verify OK: " + userDetails.getUsername());
             filterChain.doFilter(request, response);
+
         } catch (Exception e) {
             log.error("error " + e.getMessage());
             Map<String, String> errorMsg = new HashMap<>();
@@ -91,6 +94,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Nullable
     public String retrieveAPIKey(HttpServletRequest request) {
+
         String APIKey = request.getHeader("X-API-KEY");
         if (isEmpty(APIKey)) {
             return null;
