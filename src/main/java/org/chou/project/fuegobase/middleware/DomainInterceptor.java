@@ -25,14 +25,25 @@ public class DomainInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        log.info("in interceptor");
         String jwt = retrieveToken(request);
+        log.info("jwt :" + jwt);
 
+        // without jwt (= with api key) should check domain
         if (jwt == null) {
             String origin = request.getHeader(HttpHeaders.ORIGIN);
+            log.info("origin======== ", origin);
+            if (origin == null) {
+                return false;
+            }
+
             URI uri = new URI(origin);
+            log.info("uri==========", uri);
             String userDomain = uri.getHost();
+            log.info("userDomain=======", userDomain);
 
             String[] uris = request.getRequestURI().split("/");
+            log.info("projectId==========", uris[5]);
 
             if (userDomain != null && authenticationService.domainValidate(userDomain, uris[5])) {
                 return true;
