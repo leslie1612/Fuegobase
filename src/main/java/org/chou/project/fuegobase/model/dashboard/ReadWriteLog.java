@@ -29,7 +29,7 @@ public class ReadWriteLog {
     @Column(name = "write_count")
     private int writeCount;
 
-    @Column(name = "creation_date")
+    @Column(name = "date")
     private LocalDate date;
 
 }

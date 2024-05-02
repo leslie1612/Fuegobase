@@ -5,7 +5,6 @@ import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import org.chou.project.fuegobase.repository.dashboard.DashboardRepository;
 import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
-import org.chou.project.fuegobase.repository.database.DocumentRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +39,6 @@ public class DashBoardServiceImpl implements DashboardService {
         float documentsSize = dashboardRepository.countDocumentsSize(projectId);
         float fieldKeysSize = dashboardRepository.countFieldKeysSize(projectId);
         float fieldValueSize = dashboardRepository.countFieldValueSize(projectId);
-        System.out.println(projectSize);
-        System.out.println(collectionsSize);
-        System.out.println(documentsSize);
-        System.out.println(fieldKeysSize);
-        System.out.println(fieldValueSize);
 
         float totalSizeInMB = (projectSize
                 + collectionsSize
