@@ -93,9 +93,24 @@ public class FieldServiceImpl implements FieldService {
 
     @Override
     public List<FilterDocumentDto> getFieldsByFilter(String projectId, String collectionId, String filter,
-                                                     String value, String type) {
+                                                     String value, String valueType, String operator) {
         collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
-        List<Document> documents = fieldKeyRepository.getDocumentsByFilter(collectionId, filter, value, type);
+        String[] keys = filter.split("\\.");
+        List<Document> documents = new ArrayList<>();
+
+        if (operator.equals("CONTAINS") && keys.length == 1) {
+            documents = fieldKeyRepository.getDocumentsByArrayFilter(collectionId, keys[0], value, valueType);
+
+        } else {
+            if (keys.length > 1) {
+                String fieldKey = keys[0];
+                String valueKey = keys[1];
+                documents = fieldKeyRepository.getDocumentsByMapFilter(collectionId, fieldKey, valueKey,
+                        value, valueType, operator);
+            } else {
+                documents = fieldKeyRepository.getDocumentsByFilter(collectionId, keys[0], value, valueType, operator);
+            }
+        }
 
         List<FilterDocumentDto> result = new ArrayList<>();
         for (Document document : documents) {
@@ -306,5 +321,4 @@ public class FieldServiceImpl implements FieldService {
         logger.info("/" + projectId + "/" + action + "/" + fieldId + "/once");
 
     }
-
 }

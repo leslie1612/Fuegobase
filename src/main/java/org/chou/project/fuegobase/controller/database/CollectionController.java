@@ -1,20 +1,16 @@
 package org.chou.project.fuegobase.controller.database;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.CollectionData;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.service.CollectionService;
 import org.chou.project.fuegobase.service.FieldService;
-import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpRequest;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -55,13 +51,13 @@ public class CollectionController {
     @GetMapping("/{collectionId}")
     public ResponseEntity<?> getFieldsByFilter(@PathVariable String projectId, @PathVariable String collectionId,
                                                @RequestParam String filter, @RequestParam String value,
-                                               @RequestParam String type) {
+                                               @RequestParam String type, @RequestParam String operator) {
         try {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new GenericResponse<>(fieldService.getFieldsByFilter(projectId, collectionId, filter, value, type)));
+                    .body(new GenericResponse<>(fieldService.getFieldsByFilter(projectId, collectionId, filter, value, type, operator)));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Data Not Found."));
         }
 
     }

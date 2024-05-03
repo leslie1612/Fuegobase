@@ -1,7 +1,6 @@
 package org.chou.project.fuegobase.service;
 
 import org.chou.project.fuegobase.data.database.FieldData;
-import org.chou.project.fuegobase.data.database.FieldKeyData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.data.dto.FilterDocumentDto;
@@ -13,8 +12,8 @@ public interface FieldService {
 
     List<FieldDto> getFields(String projectId, String collectionId, String documentId);
 
-    List<FilterDocumentDto> getFieldsByFilter(String projectId,String collectionId,
-                                              String filter, String value, String type);
+    List<FilterDocumentDto> getFieldsByFilter(String projectId, String collectionId,
+                                              String filter, String value, String valueType, String operator);
 
     FieldDto updateField(String projectId, String collectionId, String documentId,
                          String fieldId, String valueId, ValueInfoData valueInfoData);
