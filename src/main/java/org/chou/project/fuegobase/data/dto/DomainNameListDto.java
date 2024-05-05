@@ -12,7 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DomainNameListDto {
-    
+
+    @JsonProperty("projectName")
+    private String projectName;
+
     @JsonProperty("apiKey")
     private String apiKey;
 

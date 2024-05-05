@@ -13,10 +13,14 @@ public class DomainNameWhitelist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name="project_id")
+    @Column(name = "project_id")
     private long projectId;
 
-    @Column(name="name")
+    @Column(name = "name")
     private String domainName;
+
+    @Column(name = "type")
+    private String type;
+
 
 }

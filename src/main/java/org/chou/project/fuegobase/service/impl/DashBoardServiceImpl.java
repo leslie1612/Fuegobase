@@ -10,6 +10,7 @@ import org.chou.project.fuegobase.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 @Service
@@ -47,10 +48,10 @@ public class DashBoardServiceImpl implements DashboardService {
                 + fieldKeysSize
                 + fieldValueSize);
 
-        log.info("total size in MB: " + totalSizeInMB);
+        DecimalFormat df = new DecimalFormat("#.####");
+        log.info("total size in MB: " + df.format(totalSizeInMB));
 
         return totalSizeInMB;
-
     }
 
     @Override

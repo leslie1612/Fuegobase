@@ -56,6 +56,7 @@ public class ProjectServiceImpl implements ProjectService {
             DomainNameWhitelist domainNameWhitelist = new DomainNameWhitelist();
             domainNameWhitelist.setProjectId(savedProject.getId());
             domainNameWhitelist.setDomainName("localhost");
+            domainNameWhitelist.setType("Default");
 
             domainNameRepository.save(domainNameWhitelist);
         }
@@ -79,6 +80,7 @@ public class ProjectServiceImpl implements ProjectService {
         DomainNameWhitelist domainNameWhitelist = new DomainNameWhitelist();
         domainNameWhitelist.setProjectId(projectId);
         domainNameWhitelist.setDomainName(domainNameData.getDomainName());
+        domainNameWhitelist.setType("Custom");
 
         domainNameRepository.save(domainNameWhitelist);
     }
@@ -90,6 +92,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(projectId).orElseThrow();
         List<DomainNameWhitelist> domainNameWhitelists = domainNameRepository.findAllByProjectId(projectId);
 
+        domainNameListDto.setProjectName(project.getName());
         domainNameListDto.setApiKey(project.getAPIKey());
         domainNameListDto.setDomainNameWhitelist(domainNameWhitelists);
 
