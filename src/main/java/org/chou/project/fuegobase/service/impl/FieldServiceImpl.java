@@ -149,7 +149,8 @@ public class FieldServiceImpl implements FieldService {
         for (FieldProjection fieldProjection : fieldProjectionList) {
             ValueInfoData valueInfoData = new ValueInfoData();
             valueInfoData.setValue(fieldProjection.getValueName());
-            valueInfoData.setValueId(fieldProjection.getValueId());
+//            valueInfoData.setValueId(fieldProjection.getValueId());
+            valueInfoData.setValueHashId(fieldProjection.getValueHashId());
 
             fieldDtoList.forEach(fieldDto -> {
                 if (fieldProjection.getId() == fieldDto.getId()) {
@@ -203,10 +204,11 @@ public class FieldServiceImpl implements FieldService {
         long cId = hashIdUtil.decoded(collectionId);
         long dId = hashIdUtil.decoded(documentId);
         long fId = hashIdUtil.decoded(fieldId);
+        long vId = hashIdUtil.decoded(valueId);
 
         if (valueId != null) {
             findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
-            fieldValueRepository.deleteById(Long.parseLong(valueId));
+            fieldValueRepository.deleteById(vId);
             if (fieldValueRepository.findAllByFieldKeyId(fId).isEmpty()) {
                 fieldKeyRepository.deleteById(fId);
             }
@@ -225,6 +227,7 @@ public class FieldServiceImpl implements FieldService {
         long cId = hashIdUtil.decoded(collectionId);
         long dId = hashIdUtil.decoded(documentId);
         long fId = hashIdUtil.decoded(fieldId);
+        long vId = hashIdUtil.decoded(valueId);
 
         FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
         FieldKey existingFieldKey = fieldKeyRepository.findById(fId).orElseThrow();
@@ -284,7 +287,7 @@ public class FieldServiceImpl implements FieldService {
             fieldDto.setType(fieldKey.getFieldType().getTypeName());
 
             ValueInfoData valueInfoData = new ValueInfoData();
-            valueInfoData.setValueId(fieldValue.getId());
+            valueInfoData.setValueHashId(fieldValue.getHashId());
             valueInfoData.setKey(fieldValue.getKeyName());
             valueInfoData.setValue(fieldValue.getValueName());
             valueInfoData.setType(fieldValue.getFieldType().getTypeName());
@@ -325,11 +328,12 @@ public class FieldServiceImpl implements FieldService {
         long id = hashIdUtil.decoded(projectId);
         long cId = hashIdUtil.decoded(collectionId);
         long dId = hashIdUtil.decoded(documentId);
-        long kId = hashIdUtil.decoded(fieldId);
+        long fId = hashIdUtil.decoded(fieldId);
+        long vId = hashIdUtil.decoded(valueId);
 
-        int count = fieldValueRepository.isFieldValueExist(id, cId, dId, kId, Long.parseLong(valueId));
+        int count = fieldValueRepository.isFieldValueExist(id, cId, dId, fId, vId);
         if (count > 0) {
-            return fieldValueRepository.findById(Long.parseLong(valueId)).orElse(null);
+            return fieldValueRepository.findById(vId).orElse(null);
         } else {
             throw new NoSuchElementException();
         }

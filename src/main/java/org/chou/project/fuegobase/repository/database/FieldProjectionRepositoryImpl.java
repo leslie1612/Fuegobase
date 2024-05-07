@@ -16,8 +16,8 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     @Override
     public List<FieldProjection> fetchAllFieldsByDocumentId(long documentId) {
         String query = """
-                SELECT k.id AS id, k.hash_id AS hashId, k.document_id AS documentId,k.name, t.type_name AS keyType, v.key_name AS keyName,
-                    v.id AS valueId, v.value_name AS valueName, ft.type_name AS valueType
+                SELECT k.id AS id, k.hash_id AS hashId, k.document_id AS documentId, k.name, t.type_name AS keyType, v.key_name AS keyName,
+                    v.id AS valueId, v.hash_id AS valueHashId, v.value_name AS valueName, ft.type_name AS valueType
                 FROM field_key k
                 JOIN field_value v ON k.id = v.field_key_id
                 JOIN field_type t ON k.type_id = t.id

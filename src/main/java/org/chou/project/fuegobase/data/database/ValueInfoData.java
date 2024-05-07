@@ -1,15 +1,19 @@
 package org.chou.project.fuegobase.data.database;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.annotation.Nullable;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public class ValueInfoData {
 
 
     @Nullable
+    @JsonIgnore
     private long valueId;
+
+    @Nullable
+    private String valueHashId;
 
     @Nullable
     private String key;
