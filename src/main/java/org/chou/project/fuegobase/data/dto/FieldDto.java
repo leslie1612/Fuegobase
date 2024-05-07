@@ -1,13 +1,11 @@
 package org.chou.project.fuegobase.data.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.chou.project.fuegobase.data.database.ValueInfoData;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,9 +13,14 @@ import java.util.List;
 public class FieldDto {
     @Id
     @JsonProperty("id")
+    @JsonIgnore
     private long id;
 
+    @JsonProperty("hashId")
+    private String hashId;
+
     @JsonProperty("documentId")
+    @JsonIgnore
     private long documentId;
 
     @JsonProperty("name")

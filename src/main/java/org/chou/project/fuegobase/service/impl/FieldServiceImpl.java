@@ -11,6 +11,7 @@ import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
+import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,25 +31,30 @@ public class FieldServiceImpl implements FieldService {
     private FieldTypeRepository fieldTypeRepository;
     private FieldKeyRepository fieldKeyRepository;
     private FieldValueRepository fieldValueRepository;
+    private HashIdUtil hashIdUtil;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository) {
+                            FieldValueRepository fieldValueRepository, HashIdUtil hashIdUtil) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
         this.fieldKeyRepository = fieldKeyRepository;
         this.fieldValueRepository = fieldValueRepository;
+        this.hashIdUtil = hashIdUtil;
     }
 
     @Override
     public void createField(String projectId, String collectionId,
                             String documentId, FieldData fieldData) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
 
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         FieldType fieldKeyType = stringToType(fieldData.getType());
-        if (fieldKeyRepository.existsByNameAndDocumentId(fieldData.getKey(), Long.parseLong(documentId))) {
+        if (fieldKeyRepository.existsByNameAndDocumentId(fieldData.getKey(), dId)) {
             throw new IllegalArgumentException("Key can not be repeated.");
         }
 
@@ -75,18 +81,22 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-            addReadWriteNumber(projectId, String.valueOf(savedFieldKey.getId()), "write");
+            addReadWriteNumber(String.valueOf(dId), String.valueOf(savedFieldKey.getId()), "write");
 
         }
     }
 
     @Override
     public List<FieldDto> getFields(String projectId, String collectionId, String documentId) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+
         Document document = findDocumentByProjectIdAndCollectionAndId(projectId, collectionId, documentId);
         List<FieldDto> fieldDtoList = mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId()));
 
         for (FieldDto fieldDto : fieldDtoList) {
-            addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
+            addReadWriteNumber(String.valueOf(id), String.valueOf(fieldDto.getId()), "read");
         }
         return fieldDtoList;
     }
@@ -94,6 +104,7 @@ public class FieldServiceImpl implements FieldService {
     @Override
     public List<FilterDocumentDto> getFieldsByFilter(String projectId, String collectionId, String filter,
                                                      String value, String valueType, String operator) {
+
         collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
         String[] keys = filter.split("\\.");
         List<Document> documents = new ArrayList<>();
@@ -164,7 +175,7 @@ public class FieldServiceImpl implements FieldService {
     public List<FieldDto> addKeyInfo(List<FieldProjection> fieldProjectionList) {
         Map<String, List<FieldProjection>> groupedByProductId = fieldProjectionList.stream()
                 .collect(Collectors.groupingBy(fp ->
-                        fp.getId() + "-" + fp.getDocumentId() + "-" + fp.getName() + "-" + fp.getKeyType()));
+                        fp.getId() + "-" + fp.getHashId() + "-" + fp.getDocumentId() + "-" + fp.getName() + "-" + fp.getKeyType()));
 
         Set<String> keySet = groupedByProductId.keySet();
 
@@ -174,9 +185,10 @@ public class FieldServiceImpl implements FieldService {
 
             String[] keyInfo = ks.split("-");
             fieldDto.setId(Long.parseLong(keyInfo[0]));
-            fieldDto.setDocumentId(Long.parseLong(keyInfo[1]));
-            fieldDto.setKey(keyInfo[2]);
-            fieldDto.setType(keyInfo[3]);
+            fieldDto.setHashId(keyInfo[1]);
+//            fieldDto.setDocumentId(Long.parseLong(keyInfo[2]));
+            fieldDto.setKey(keyInfo[3]);
+            fieldDto.setType(keyInfo[4]);
 
             fieldDtoList.add(fieldDto);
         }
@@ -187,33 +199,41 @@ public class FieldServiceImpl implements FieldService {
     @Override
     public void deleteField(String projectId, String collectionId,
                             String documentId, String fieldId, String valueId) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+        long fId = hashIdUtil.decoded(fieldId);
 
         if (valueId != null) {
             findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
             fieldValueRepository.deleteById(Long.parseLong(valueId));
-            if (fieldValueRepository.findAllByFieldKeyId(Long.parseLong(fieldId)).isEmpty()) {
-                fieldKeyRepository.deleteById(Long.parseLong(fieldId));
+            if (fieldValueRepository.findAllByFieldKeyId(fId).isEmpty()) {
+                fieldKeyRepository.deleteById(fId);
             }
         } else {
             findFieldKey(projectId, collectionId, documentId, fieldId);
-            fieldKeyRepository.deleteById(Long.parseLong(fieldId));
+            fieldKeyRepository.deleteById(fId);
         }
-        addReadWriteNumber(projectId, fieldId, "read");
-        addReadWriteNumber(projectId, fieldId, "write");
+        addReadWriteNumber(String.valueOf(id), String.valueOf(fId), "read");
+        addReadWriteNumber(String.valueOf(id), String.valueOf(fId), "write");
     }
 
     @Override
     public FieldDto updateField(String projectId, String collectionId, String documentId,
                                 String fieldId, String valueId, ValueInfoData valueInfoData) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+        long fId = hashIdUtil.decoded(fieldId);
 
         FieldValue existingFieldValue = findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
-        FieldKey existingFieldKey = fieldKeyRepository.findById(Long.parseLong(fieldId)).orElseThrow();
+        FieldKey existingFieldKey = fieldKeyRepository.findById(fId).orElseThrow();
 
         existingFieldValue.setValueName(valueInfoData.getValue());
         fieldValueRepository.save(existingFieldValue);
 
-        addReadWriteNumber(projectId, fieldId, "read");
-        addReadWriteNumber(projectId, fieldId, "write");
+        addReadWriteNumber(String.valueOf(id), String.valueOf(fId), "read");
+        addReadWriteNumber(String.valueOf(id), String.valueOf(fId), "write");
 
         return mapFieldKeyAndValueToFieldDto(existingFieldKey, existingFieldValue);
     }
@@ -221,6 +241,11 @@ public class FieldServiceImpl implements FieldService {
     @Override
     public FieldDto addFieldValue(String projectId, String collectionId, String documentId,
                                   String fieldId, ValueInfoData valueInfoData) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+        long fId = hashIdUtil.decoded(fieldId);
+
         FieldKey existingFieldKey = findFieldKey(projectId, collectionId, documentId, fieldId);
 
         String existingKeyType = existingFieldKey.getFieldType().getTypeName();
@@ -242,8 +267,8 @@ public class FieldServiceImpl implements FieldService {
 
         fieldValueRepository.save(fieldValue);
 
-        addReadWriteNumber(projectId, fieldId, "read");
-        addReadWriteNumber(projectId, fieldId, "write");
+        addReadWriteNumber(String.valueOf(id), String.valueOf(fId), "read");
+        addReadWriteNumber(String.valueOf(id), String.valueOf(fId), "write");
 
         return mapFieldKeyAndValueToFieldDto(existingFieldKey, fieldValue);
     }
@@ -252,7 +277,8 @@ public class FieldServiceImpl implements FieldService {
 
         try {
             FieldDto fieldDto = new FieldDto();
-            fieldDto.setId(fieldKey.getId());
+//            fieldDto.setId(fieldKey.getId());
+            fieldDto.setHashId(fieldKey.getHashId());
             fieldDto.setDocumentId(fieldKey.getDocumentId());
             fieldDto.setKey(fieldKey.getName());
             fieldDto.setType(fieldKey.getFieldType().getTypeName());
@@ -272,20 +298,23 @@ public class FieldServiceImpl implements FieldService {
     }
 
     public Document findDocumentByProjectIdAndCollectionAndId(String projectId, String collectionId, String documentId) {
-        return documentRepository.findDocumentByProjectIdAndCollectionAndId(
-                Long.parseLong(projectId), Long.parseLong(collectionId), Long.parseLong(documentId)).orElseThrow();
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+
+        return documentRepository.findDocumentByProjectIdAndCollectionAndId(id, cId, dId).orElseThrow();
 
     }
 
     public FieldKey findFieldKey(String projectId, String collectionId, String documentId, String fieldId) {
-        int count = fieldKeyRepository.isFieldKeyExist(
-                Long.parseLong(projectId),
-                Long.parseLong(collectionId),
-                Long.parseLong(documentId),
-                Long.parseLong(fieldId)
-        );
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+        long fId = hashIdUtil.decoded(fieldId);
+
+        int count = fieldKeyRepository.isFieldKeyExist(id, cId, dId, fId);
         if (count > 0) {
-            return fieldKeyRepository.findById(Long.parseLong(fieldId)).orElse(null);
+            return fieldKeyRepository.findById(fId).orElse(null);
         } else {
             throw new NoSuchElementException();
         }
@@ -293,13 +322,12 @@ public class FieldServiceImpl implements FieldService {
 
     public FieldValue findFieldValue(String projectId, String collectionId,
                                      String documentId, String fieldId, String valueId) {
-        int count = fieldValueRepository.isFieldValueExist(
-                Long.parseLong(projectId),
-                Long.parseLong(collectionId),
-                Long.parseLong(documentId),
-                Long.parseLong(fieldId),
-                Long.parseLong(valueId)
-        );
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+        long kId = hashIdUtil.decoded(fieldId);
+
+        int count = fieldValueRepository.isFieldValueExist(id, cId, dId, kId, Long.parseLong(valueId));
         if (count > 0) {
             return fieldValueRepository.findById(Long.parseLong(valueId)).orElse(null);
         } else {

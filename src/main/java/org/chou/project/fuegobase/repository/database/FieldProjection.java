@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class FieldProjection {
 
     private long id;
+    private String hashId;
 
     private long documentId;
 
