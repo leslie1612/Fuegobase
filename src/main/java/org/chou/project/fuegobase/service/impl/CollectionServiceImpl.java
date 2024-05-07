@@ -2,18 +2,17 @@ package org.chou.project.fuegobase.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.CollectionData;
-import org.chou.project.fuegobase.data.dto.FieldDto;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.CollectionService;
+import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -21,24 +20,29 @@ public class CollectionServiceImpl implements CollectionService {
 
     private final CollectionRepository collectionRepository;
     private final ProjectRepository projectRepository;
+    private final HashIdUtil hashIdUtil;
 
 
     @Autowired
-    public CollectionServiceImpl(CollectionRepository collectionRepository, ProjectRepository projectRepository) {
+    public CollectionServiceImpl(CollectionRepository collectionRepository, ProjectRepository projectRepository, HashIdUtil hashIdUtil) {
         this.collectionRepository = collectionRepository;
         this.projectRepository = projectRepository;
+        this.hashIdUtil = hashIdUtil;
+
     }
 
     @Override
-    public void createCollection(long projectId, CollectionData collectionData) {
+    public void createCollection(String projectId, CollectionData collectionData) {
 
-        Project project = projectRepository.findById(projectId).orElseThrow();
-        if (isCollectionNameExistOrNot(projectId, collectionData.getName())) {
+        long id = hashIdUtil.decoded(projectId);
+
+        Project project = projectRepository.findById(id).orElseThrow();
+        if (isCollectionNameExistOrNot(id, collectionData.getName())) {
             throw new IllegalArgumentException("Name can not be repeated.");
         }
         Collection collection = new Collection();
         collection.setName(collectionData.getName());
-        collection.setProjectId(projectId);
+        collection.setProjectId(id);
 
         collectionRepository.save(collection);
 
@@ -47,13 +51,15 @@ public class CollectionServiceImpl implements CollectionService {
 
     @Override
     public List<Collection> getCollections(String projectId) {
-        return collectionRepository.getCollectionsByProjectId(Long.parseLong(projectId));
+        long id = hashIdUtil.decoded(projectId);
+        return collectionRepository.getCollectionsByProjectId(id);
     }
 
     @Override
     public Collection updateCollectionById(String projectId,
                                            String collectionId,
                                            CollectionData updatedCollection) {
+
 
         Collection existingCollection = findCollectionByProjectIdAndId(projectId, collectionId);
         if (existingCollection != null) {
@@ -68,15 +74,19 @@ public class CollectionServiceImpl implements CollectionService {
 
     @Override
     public void deleteCollection(String projectId, String collectionId) {
+        long cId = hashIdUtil.decoded(collectionId);
+
         findCollectionByProjectIdAndId(projectId, collectionId);
-        collectionRepository.deleteById(Long.parseLong(collectionId));
+        collectionRepository.deleteById(cId);
         log.info("Delete collection by " + collectionId + " successfully!");
 
     }
 
 
     public Collection findCollectionByProjectIdAndId(String projectId, String collectionId) {
-        return collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        return collectionRepository.findByProjectIdAndId(id, cId).orElseThrow();
     }
 
     public Boolean isCollectionNameExistOrNot(long projectId, String collectionName) {

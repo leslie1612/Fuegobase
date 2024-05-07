@@ -27,7 +27,7 @@ public class CollectionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createCollection(@PathVariable long projectId,
+    public ResponseEntity<?> createCollection(@PathVariable String projectId,
                                               @RequestBody CollectionData collectionData) {
 
         try {
