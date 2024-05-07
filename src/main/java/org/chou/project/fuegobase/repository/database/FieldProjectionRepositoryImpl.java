@@ -42,7 +42,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
         String op = getOperator(operator);
 
         String query = """
-                SELECT d.id, d.name, d.collection_id
+                SELECT d.id, d.hash_id ,d.name, d.collection_id
                 FROM document d
                 JOIN collection c ON d.collection_id = c.id
                 JOIN field_key k ON d.id = k.document_id
@@ -62,7 +62,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     public List<Document> getDocumentsByArrayFilter(String collectionId, String keyName, String valueName, String valueType) {
 
         String query = """
-                SELECT d.id, d.name, d.collection_id
+                SELECT d.id, d.hash_id, d.name, d.collection_id
                 FROM document d
                 JOIN collection c ON d.collection_id = c.id
                 JOIN field_key k ON d.id = k.document_id
@@ -85,7 +85,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
         String op = getOperator(operator);
 
         String query = """
-                SELECT d.id, d.name, d.collection_id
+                SELECT d.id, d.hash_id, d.name, d.collection_id
                 FROM document d
                 JOIN collection c ON d.collection_id = c.id
                 JOIN field_key k ON d.id = k.document_id

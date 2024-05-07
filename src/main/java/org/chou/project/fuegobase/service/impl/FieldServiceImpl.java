@@ -103,31 +103,33 @@ public class FieldServiceImpl implements FieldService {
 
     @Override
     public List<FilterDocumentDto> getFieldsByFilter(String projectId, String collectionId, String filter,
-                                                     String value, String valueType, String operator) {
+                                                     String value, String valueType, String operator) throws IllegalArgumentException {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
 
-        collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
+        collectionRepository.findByProjectIdAndId(id, cId).orElseThrow();
         String[] keys = filter.split("\\.");
         List<Document> documents = new ArrayList<>();
 
-        if (operator.equals("CONTAINS") && keys.length == 1) {
-            documents = fieldKeyRepository.getDocumentsByArrayFilter(collectionId, keys[0], value, valueType);
-
+        if (operator.equals("CONTAINS") && keys.length <= 1) {
+            documents = fieldKeyRepository.getDocumentsByArrayFilter(String.valueOf(cId), keys[0], value, valueType);
         } else {
-            if (keys.length > 1) {
+            if (keys.length > 1 && !operator.equals("CONTAINS")) {
                 String fieldKey = keys[0];
                 String valueKey = keys[1];
-                documents = fieldKeyRepository.getDocumentsByMapFilter(collectionId, fieldKey, valueKey,
+                documents = fieldKeyRepository.getDocumentsByMapFilter(String.valueOf(cId), fieldKey, valueKey,
                         value, valueType, operator);
             } else {
-                documents = fieldKeyRepository.getDocumentsByFilter(collectionId, keys[0], value, valueType, operator);
+                documents = fieldKeyRepository.getDocumentsByFilter(String.valueOf(cId), keys[0], value, valueType, operator);
             }
         }
 
         List<FilterDocumentDto> result = new ArrayList<>();
         for (Document document : documents) {
             FilterDocumentDto filterDocumentDto = new FilterDocumentDto();
-            filterDocumentDto.setId(document.getId());
-            filterDocumentDto.setCollectionId(document.getCollectionId());
+//            filterDocumentDto.setId(document.getId());
+            filterDocumentDto.setHashId(document.getHashId());
+//            filterDocumentDto.setCollectionId(document.getCollectionId());
             filterDocumentDto.setName(document.getName());
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
@@ -204,9 +206,10 @@ public class FieldServiceImpl implements FieldService {
         long cId = hashIdUtil.decoded(collectionId);
         long dId = hashIdUtil.decoded(documentId);
         long fId = hashIdUtil.decoded(fieldId);
-        long vId = hashIdUtil.decoded(valueId);
+
 
         if (valueId != null) {
+            long vId = hashIdUtil.decoded(valueId);
             findFieldValue(projectId, collectionId, documentId, fieldId, valueId);
             fieldValueRepository.deleteById(vId);
             if (fieldValueRepository.findAllByFieldKeyId(fId).isEmpty()) {
