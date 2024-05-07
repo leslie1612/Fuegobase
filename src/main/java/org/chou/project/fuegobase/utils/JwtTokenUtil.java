@@ -1,4 +1,4 @@
-package org.chou.project.fuegobase.middleware;
+package org.chou.project.fuegobase.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;

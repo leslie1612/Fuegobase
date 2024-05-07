@@ -40,7 +40,7 @@ public class AuthenticationService {
         String userDomain = uri.getHost();
         String[] uris = request.getRequestURI().split("/");
 
-        return projectRepository.existsByIdAndAPIKey(Long.parseLong(projectId), APIKey) && domainValidate(userDomain, uris[5]);
+        return projectRepository.validateByIdAndApiKey(Long.parseLong(projectId), APIKey) > 0 && domainValidate(userDomain, uris[5]);
     }
 
     public Boolean domainValidate(String domain, String projectId) {

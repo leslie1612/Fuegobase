@@ -1,4 +1,4 @@
-package org.chou.project.fuegobase.controller;
+package org.chou.project.fuegobase.controller.security;
 
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.DomainNameData;

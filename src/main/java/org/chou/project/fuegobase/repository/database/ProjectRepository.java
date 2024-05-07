@@ -5,14 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-
 import java.util.List;
-import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-    Boolean existsByIdAndAPIKey(long projectId, String APIKey);
+    @Query(value = "SELECT COUNT(*) FROM project p JOIN apikey k ON k.project_id = p.id WHERE p.id = :id AND k.name = :name", nativeQuery = true)
+    Integer validateByIdAndApiKey(@Param("id") long projectId, @Param("name") String apikey);
 
     Boolean existsByName(String projectName);
+//    Boolean existsByNameAndUserId(String projectName, long userId);
 
     List<Project> getProjectsByUserId(Long userId);
 

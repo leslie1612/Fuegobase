@@ -17,7 +17,7 @@ public class DomainNameListDto {
     private String projectName;
 
     @JsonProperty("apiKey")
-    private String apiKey;
+    private List<String> apiKeyList;
 
     @JsonProperty("domain")
     private List<DomainNameWhitelist> domainNameWhitelist;

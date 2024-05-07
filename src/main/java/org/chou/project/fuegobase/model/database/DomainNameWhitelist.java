@@ -21,6 +21,4 @@ public class DomainNameWhitelist {
 
     @Column(name = "type")
     private String type;
-
-
 }

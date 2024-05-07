@@ -14,7 +14,6 @@ public class FieldKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-
     @Column(name = "document_id")
     private long documentId;
 

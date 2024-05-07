@@ -1,6 +1,6 @@
 package org.chou.project.fuegobase.repository.user;
 
-import org.chou.project.fuegobase.middleware.JwtTokenUtil;
+import org.chou.project.fuegobase.utils.JwtTokenUtil;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 

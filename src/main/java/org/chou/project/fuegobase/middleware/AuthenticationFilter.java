@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.repository.user.UserRepository;
 import org.chou.project.fuegobase.service.AuthenticationService;
+import org.chou.project.fuegobase.utils.JwtTokenUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -48,10 +49,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             throws IOException, ServletException {
 
         String APIKey = retrieveAPIKey(request);
-        log.info("APIKey : " + APIKey);
         String token = retrieveToken(request);
-        log.info("token : " + token);
-        
+
         String[] uri = request.getRequestURI().split("/");
         String projectId = null;
 
@@ -67,13 +66,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
-                log.info("token verify OK: " + userDetails.getUsername());
             }
             // check APIKey and domain
             if (APIKey != null && authenticationService.validate(request, projectId, APIKey)) {
                 Authentication authentication = authenticationService.getAuthentication(request);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("api key validate success");
             }
             filterChain.doFilter(request, response);
 

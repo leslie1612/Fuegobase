@@ -14,12 +14,10 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="collection_id")
+    @Column(name = "collection_id")
     private long collectionId;
 
-    @Column(name="name")
+    @Column(name = "name")
     private String name;
-
-
 
 }
