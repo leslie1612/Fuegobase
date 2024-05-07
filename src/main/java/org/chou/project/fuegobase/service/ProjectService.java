@@ -16,10 +16,10 @@ public interface ProjectService {
 
     void deleteProject(String projectId);
 
-    void addDomainNameWhiteList(long projectId, DomainNameData domainNameData);
+    void addDomainNameWhiteList(String projectId, DomainNameData domainNameData);
 
-    DomainNameListDto getDomainWhiteList(long projectId);
+    DomainNameListDto getDomainWhiteList(String projectId);
 
-    void deleteDomainName(long projectId, long domainNameId);
+    void deleteDomainName(String projectId, long domainNameId);
 
 }

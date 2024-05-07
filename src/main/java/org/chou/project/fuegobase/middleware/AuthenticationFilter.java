@@ -75,9 +75,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            log.error("error " + e.getMessage());
+            log.error("Filter error " + e.getMessage());
             Map<String, String> errorMsg = new HashMap<>();
-            errorMsg.put("error ", e.getMessage());
+            errorMsg.put("Error ", e.getMessage());
             handleException(response, HttpStatus.UNAUTHORIZED.value(), errorMsg);
         }
     }

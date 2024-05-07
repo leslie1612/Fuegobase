@@ -29,7 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final DomainNameRepository domainNameRepository;
     private final UserService userService;
     private final APIKeyService apiKeyService;
-//    private final HashIdUtil hashIdUtil;
+    private final HashIdUtil hashIdUtil;
 
 
     @Autowired
@@ -39,7 +39,7 @@ public class ProjectServiceImpl implements ProjectService {
         this.domainNameRepository = domainNameRepository;
         this.userService = userService;
         this.apiKeyService = apiKeyService;
-//        this.hashIdUtil = hashIdUtil;
+        this.hashIdUtil = hashIdUtil;
     }
 
 
@@ -49,8 +49,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         User user = userService.getUserByToken(token);
 
-//        if (projectRepository.existsByNameAndUserId(projectData.getName(), user.getId())) {
-        if (projectRepository.existsByName(projectData.getName())) {
+        if (projectRepository.existsByNameAndUserId(projectData.getName(), user.getId())) {
             throw new IllegalArgumentException("Project name can not be repeated.");
         } else {
             Project project = new Project();
@@ -71,23 +70,22 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<Project> getProjects(String token) {
         User user = userService.getUserByToken(token);
-//        return projectRepository.getProjectsByUserId(user.getId()).stream()
-//                .map(this::mapProjectToProjectDto)
-//                .collect(Collectors.toList());
         return projectRepository.getProjectsByUserId(user.getId());
     }
 
     @Override
     public void deleteProject(String projectId) {
-        projectRepository.findById(Long.parseLong(projectId)).orElseThrow();
-        projectRepository.deleteById(Long.parseLong(projectId));
+        long id = hashIdUtil.decoded(projectId);
+        projectRepository.findById(id).orElseThrow();
+        projectRepository.deleteById(id);
         log.info("Delete project by : " + projectId + " successfully!");
     }
 
     @Override
-    public void addDomainNameWhiteList(long projectId, DomainNameData domainNameData) {
+    public void addDomainNameWhiteList(String projectId, DomainNameData domainNameData) {
+        long id = hashIdUtil.decoded(projectId);
         DomainNameWhitelist domainNameWhitelist = new DomainNameWhitelist();
-        domainNameWhitelist.setProjectId(projectId);
+        domainNameWhitelist.setProjectId(id);
         domainNameWhitelist.setDomainName(domainNameData.getDomainName());
         domainNameWhitelist.setType("Custom");
 
@@ -95,14 +93,15 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public DomainNameListDto getDomainWhiteList(long projectId) {
+    public DomainNameListDto getDomainWhiteList(String projectId) {
+        long id = hashIdUtil.decoded(projectId);
         DomainNameListDto domainNameListDto = new DomainNameListDto();
 
-        Project project = projectRepository.findById(projectId).orElseThrow();
-        List<DomainNameWhitelist> domainNameWhitelists = domainNameRepository.findAllByProjectId(projectId);
+        Project project = projectRepository.findById(id).orElseThrow();
+        List<DomainNameWhitelist> domainNameWhitelists = domainNameRepository.findAllByProjectId(id);
 
         domainNameListDto.setProjectName(project.getName());
-        List<APIKey> apiKeyList = apiKeyService.findAPIKey(projectId);
+        List<APIKey> apiKeyList = apiKeyService.findAPIKey(id);
         List<String> apiKeyName = apiKeyList.stream().map(APIKey::getName).toList();
         domainNameListDto.setApiKeyList(apiKeyName);
         domainNameListDto.setDomainNameWhitelist(domainNameWhitelists);
@@ -111,7 +110,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void deleteDomainName(long projectId, long domainNameId) {
+    public void deleteDomainName(String projectId, long domainNameId) {
         domainNameRepository.deleteById(domainNameId);
     }
 

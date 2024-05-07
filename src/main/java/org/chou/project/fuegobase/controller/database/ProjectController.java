@@ -5,6 +5,7 @@ import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.ProjectData;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.ProjectService;
+import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,12 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/databases/projects")
 public class ProjectController {
     private final ProjectService projectService;
+    private final HashIdUtil hashIdUtil;
 
     @Autowired
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, HashIdUtil hashIdUtil) {
         this.projectService = projectService;
+        this.hashIdUtil = hashIdUtil;
     }
 
     @PostMapping
