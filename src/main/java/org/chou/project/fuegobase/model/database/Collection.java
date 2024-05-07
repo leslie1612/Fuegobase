@@ -20,6 +20,7 @@ public class Collection {
     @Column(name = "hash_id")
     private String hashId;
 
+    @JsonIgnore
     @Column(name = "project_id")
     private Long projectId;
 

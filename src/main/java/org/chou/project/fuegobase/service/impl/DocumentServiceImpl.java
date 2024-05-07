@@ -7,29 +7,34 @@ import org.chou.project.fuegobase.model.database.Document;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
 import org.chou.project.fuegobase.repository.database.DocumentRepository;
 import org.chou.project.fuegobase.service.DocumentService;
+import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
 public class DocumentServiceImpl implements DocumentService {
     private final DocumentRepository documentRepository;
     private final CollectionRepository collectionRepository;
+    private final HashIdUtil hashIdUtil;
 
     @Autowired
-    public DocumentServiceImpl(DocumentRepository documentRepository, CollectionRepository collectionRepository) {
+    public DocumentServiceImpl(DocumentRepository documentRepository, CollectionRepository collectionRepository, HashIdUtil hashIdUtil) {
         this.documentRepository = documentRepository;
         this.collectionRepository = collectionRepository;
+        this.hashIdUtil = hashIdUtil;
     }
 
     @Override
     public void createDocument(String projectId, String collectionId, DocumentData documentData) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
 
-        Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
-        if (documentRepository.existsByNameAndCollectionId(documentData.getName(),Long.parseLong(collectionId))) {
+        // TODO logic fix
+        Collection c = findCollectionByProjectIdAndId(id, cId);
+        if (documentRepository.existsByNameAndCollectionId(documentData.getName(), cId)) {
             throw new IllegalArgumentException("Name can not be repeated.");
         }
 
@@ -42,14 +47,21 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public List<Document> getDocuments(String projectId, String collectionId) {
-        Collection c = findCollectionByProjectIdAndId(projectId, collectionId);
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        Collection c = findCollectionByProjectIdAndId(id, cId);
+
         return documentRepository.findDocumentsByCollectionId(c.getId());
     }
 
     @Override
     public Document updateDocumentById(String projectId, String collectionId, String documentId, DocumentData updateDocument) {
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
 
-        Document existingDocument = findDocument(projectId, collectionId, documentId);
+        Document existingDocument = findDocument(id, cId, dId);
+
         existingDocument.setName(updateDocument.getName());
         documentRepository.save(existingDocument);
         return existingDocument;
@@ -57,21 +69,24 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public void deleteDocument(String projectId, String collectionId, String documentId) {
-        findDocument(projectId, collectionId, documentId);
-        documentRepository.deleteById(Long.parseLong(documentId));
+        long id = hashIdUtil.decoded(projectId);
+        long cId = hashIdUtil.decoded(collectionId);
+        long dId = hashIdUtil.decoded(documentId);
+
+        findDocument(id, cId, dId);
+        documentRepository.deleteById(dId);
         log.info("Delete document by : " + documentId + " successfully!");
     }
 
 
-    public Collection findCollectionByProjectIdAndId(String projectId, String collectionId) {
-        return collectionRepository.findByProjectIdAndId(Long.parseLong(projectId), Long.parseLong(collectionId)).orElseThrow();
+    public Collection findCollectionByProjectIdAndId(long projectId, long collectionId) {
+        return collectionRepository.findByProjectIdAndId(projectId, collectionId).orElseThrow();
     }
 
-    public Document findDocument(String projectId, String collectionId, String documentId) {
+    public Document findDocument(long projectId, long collectionId, long documentId) {
+
         return documentRepository.findDocumentByProjectIdAndCollectionAndId(
-                Long.parseLong(projectId),
-                Long.parseLong(collectionId),
-                Long.parseLong(documentId)).orElseThrow();
+                projectId, collectionId, documentId).orElseThrow();
     }
 
 
