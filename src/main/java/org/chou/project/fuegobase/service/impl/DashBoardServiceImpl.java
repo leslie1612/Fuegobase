@@ -11,7 +11,6 @@ import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
 import java.util.List;
 
 @Service
@@ -36,7 +35,7 @@ public class DashBoardServiceImpl implements DashboardService {
     }
 
     @Override
-    public float getStorage(String projectId) {
+    public double getStorage(String projectId) {
         long id = hashIdUtil.decoded(projectId);
         float projectSize = projectRepository.countSizeOfProject(id);
         float collectionsSize = dashboardRepository.countCollectionsSize(id);
@@ -51,10 +50,8 @@ public class DashBoardServiceImpl implements DashboardService {
                 + fieldKeysSize
                 + fieldValueSize);
 
-        DecimalFormat df = new DecimalFormat("#.####");
-        log.info("total size in MB: " + df.format(totalSizeInMB));
-
-        return totalSizeInMB;
+        double d = Math.round(totalSizeInMB * 1000) * 0.001;
+        return d;
     }
 
     @Override

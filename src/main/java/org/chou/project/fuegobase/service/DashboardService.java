@@ -5,7 +5,7 @@ import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import java.util.List;
 
 public interface DashboardService {
-    float getStorage(String projectId);
+    double getStorage(String projectId);
 
     long getCollectionCount(String projectId);
 
