@@ -111,15 +111,23 @@ public class FieldServiceImpl implements FieldService {
         String[] keys = filter.split("\\.");
         List<Document> documents = new ArrayList<>();
 
+        if (operator.equals("CONTAINS") && keys.length != 1) {
+            System.out.println("is error");
+            throw new IllegalArgumentException();
+        }
+
         if (operator.equals("CONTAINS") && keys.length <= 1) {
+            System.out.println("is array");
             documents = fieldKeyRepository.getDocumentsByArrayFilter(String.valueOf(cId), keys[0], value, valueType);
         } else {
             if (keys.length > 1 && !operator.equals("CONTAINS")) {
+                System.out.println("is map");
                 String fieldKey = keys[0];
                 String valueKey = keys[1];
                 documents = fieldKeyRepository.getDocumentsByMapFilter(String.valueOf(cId), fieldKey, valueKey,
                         value, valueType, operator);
-            } else {
+            } else if (keys.length <= 1) {
+                System.out.println("others");
                 documents = fieldKeyRepository.getDocumentsByFilter(String.valueOf(cId), keys[0], value, valueType, operator);
             }
         }

@@ -4,10 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
 import org.chou.project.fuegobase.data.dto.DomainNameListDto;
-import org.chou.project.fuegobase.exception.APIKeyException;
 import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
-import org.chou.project.fuegobase.model.security.APIKey;
 import org.chou.project.fuegobase.model.user.User;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
@@ -45,7 +43,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public void createProject(ProjectData projectData, String token) throws APIKeyException {
+    public void createProject(ProjectData projectData, String token) {
 
         User user = userService.getUserByToken(token);
 
@@ -57,7 +55,7 @@ public class ProjectServiceImpl implements ProjectService {
             project.setUserId(user.getId());
             Project savedProject = projectRepository.save(project);
 
-            apiKeyService.generateNewKey(savedProject.getId());
+            apiKeyService.generateKeyWhenCreateProject(savedProject);
 
             DomainNameWhitelist domainNameWhitelist = new DomainNameWhitelist();
             domainNameWhitelist.setProjectId(savedProject.getId());
@@ -101,9 +99,6 @@ public class ProjectServiceImpl implements ProjectService {
         List<DomainNameWhitelist> domainNameWhitelists = domainNameRepository.findAllByProjectId(id);
 
         domainNameListDto.setProjectName(project.getName());
-        List<APIKey> apiKeyList = apiKeyService.findAPIKey(id);
-        List<String> apiKeyName = apiKeyList.stream().map(APIKey::getName).toList();
-        domainNameListDto.setApiKeyList(apiKeyName);
         domainNameListDto.setDomainNameWhitelist(domainNameWhitelists);
 
         return domainNameListDto;
@@ -113,5 +108,6 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteDomainName(String projectId, long domainNameId) {
         domainNameRepository.deleteById(domainNameId);
     }
+
 
 }

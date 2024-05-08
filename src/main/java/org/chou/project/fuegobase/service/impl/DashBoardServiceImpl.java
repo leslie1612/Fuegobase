@@ -7,6 +7,7 @@ import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.DashboardService;
+import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,25 +22,27 @@ public class DashBoardServiceImpl implements DashboardService {
     private DashboardRepository dashboardRepository;
     private CollectionRepository collectionRepository;
     private ReadWriteLogRepository readWriteLogRepository;
+    private HashIdUtil hashIdUtil;
 
     @Autowired
-    public DashBoardServiceImpl(ProjectRepository projectRepository,
-                                DashboardRepository dashboardRepository,
-                                CollectionRepository collectionRepository,
-                                ReadWriteLogRepository readWriteLogRepository) {
+    public DashBoardServiceImpl(ProjectRepository projectRepository, DashboardRepository dashboardRepository,
+                                CollectionRepository collectionRepository, ReadWriteLogRepository readWriteLogRepository,
+                                HashIdUtil hashIdUtil) {
         this.projectRepository = projectRepository;
         this.dashboardRepository = dashboardRepository;
         this.collectionRepository = collectionRepository;
         this.readWriteLogRepository = readWriteLogRepository;
+        this.hashIdUtil = hashIdUtil;
     }
 
     @Override
-    public float getStorage(long projectId) {
-        float projectSize = projectRepository.countSizeOfProject(projectId);
-        float collectionsSize = dashboardRepository.countCollectionsSize(projectId);
-        float documentsSize = dashboardRepository.countDocumentsSize(projectId);
-        float fieldKeysSize = dashboardRepository.countFieldKeysSize(projectId);
-        float fieldValueSize = dashboardRepository.countFieldValueSize(projectId);
+    public float getStorage(String projectId) {
+        long id = hashIdUtil.decoded(projectId);
+        float projectSize = projectRepository.countSizeOfProject(id);
+        float collectionsSize = dashboardRepository.countCollectionsSize(id);
+        float documentsSize = dashboardRepository.countDocumentsSize(id);
+        float fieldKeysSize = dashboardRepository.countFieldKeysSize(id);
+        float fieldValueSize = dashboardRepository.countFieldValueSize(id);
 
         float totalSizeInMB = (projectSize
                 + collectionsSize
@@ -55,18 +58,21 @@ public class DashBoardServiceImpl implements DashboardService {
     }
 
     @Override
-    public long getCollectionCount(long projectId) {
-        return collectionRepository.countAllByProjectId(projectId);
+    public long getCollectionCount(String projectId) {
+        long id = hashIdUtil.decoded(projectId);
+        return collectionRepository.countAllByProjectId(id);
     }
 
     @Override
-    public long getDocumentCount(long projectId) {
-        return dashboardRepository.countDocumentsByProjectId(projectId);
+    public long getDocumentCount(String projectId) {
+        long id = hashIdUtil.decoded(projectId);
+        return dashboardRepository.countDocumentsByProjectId(id);
     }
 
     @Override
-    public List<ReadWriteLog> getLastWeekReadWriteCount(long projectId) {
-        return readWriteLogRepository.findLastWeekReadWriteLogByProjectId(projectId);
+    public List<ReadWriteLog> getLastWeekReadWriteCount(String projectId) {
+        long id = hashIdUtil.decoded(projectId);
+        return readWriteLogRepository.findLastWeekReadWriteLogByProjectId(id);
     }
 
 }

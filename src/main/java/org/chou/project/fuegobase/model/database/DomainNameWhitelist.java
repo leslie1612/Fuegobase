@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.model.database;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ public class DomainNameWhitelist {
     private long id;
 
     @Column(name = "project_id")
+    @JsonIgnore
     private long projectId;
 
     @Column(name = "name")

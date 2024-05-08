@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.controller.security;
 
+import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.exception.APIKeyException;
 import org.chou.project.fuegobase.service.APIKeyService;
@@ -16,11 +17,20 @@ public class APIKeyController {
         this.apiKeyService = apiKeyService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getNewAPIKey(@PathVariable("id") long projectId) {
+    @GetMapping("/key/rotation/{id}")
+    public ResponseEntity<?> getNewAPIKey(@PathVariable("id") String projectId) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(apiKeyService.generateNewKey(projectId));
         } catch (APIKeyException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/key/{id}")
+    public ResponseEntity<?> getAllAPIKey(@PathVariable("id") String projectId) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(apiKeyService.getAllAPIKey(projectId)));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
     }

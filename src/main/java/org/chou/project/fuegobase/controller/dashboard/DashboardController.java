@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/dashboard")
@@ -28,40 +26,34 @@ public class DashboardController {
     }
 
     @GetMapping("/storage/{id}")
-    public ResponseEntity<?> getStorageData(@PathVariable("id") long projectId) {
+    public ResponseEntity<?> getStorageData(@PathVariable("id") String projectId) {
         return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getStorage(projectId)));
     }
 
     @GetMapping("/collections/{id}")
-    public ResponseEntity<?> getCollectionCount(@PathVariable("id") long projectId) {
+    public ResponseEntity<?> getCollectionCount(@PathVariable("id") String projectId) {
         return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getCollectionCount(projectId)));
     }
 
     @GetMapping("/documents/{id}")
-    public ResponseEntity<?> getDocumentCount(@PathVariable("id") long projectId) {
+    public ResponseEntity<?> getDocumentCount(@PathVariable("id") String projectId) {
         return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getDocumentCount(projectId)));
     }
 
     @GetMapping("/count/readwrite/{id}")
-    public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") long projectId) {
+    public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") String projectId) {
         return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getLastWeekReadWriteCount(projectId)));
     }
 
 
-    @GetMapping("/count/test1")
-    public void testGetReadLogFromS3() {
-        System.out.println("start" + System.currentTimeMillis());
-//        AmazonS3 s3Client = s3Service.createS3Client();
-        s3Service.uploadLogs();
-        System.out.println("done" + System.currentTimeMillis());
-        System.out.println(LocalDate.now().minusDays(1).toString());
-        System.out.println(LocalDate.now().toString());
-    }
-
-//    @GetMapping("/count/test2")
-//    public void testGetWriteLogFromS3(){
-//        AmazonS3 s3Client = s3Service.createS3Client();
-//        s3Service.storeWriteLogsIntoDB(s3Client);
+//    @GetMapping("/count/test1")
+//    public void testGetReadLogFromS3() {
+//        System.out.println("start" + System.currentTimeMillis());
+//        s3Service.uploadLogs();
+//        System.out.println("done" + System.currentTimeMillis());
+//        System.out.println(LocalDate.now().minusDays(1).toString());
+//        System.out.println(LocalDate.now().toString());
 //    }
+
 
 }

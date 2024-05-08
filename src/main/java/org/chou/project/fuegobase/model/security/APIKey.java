@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.model.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,10 +15,15 @@ import java.util.Date;
 public class APIKey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Long id;
+
+    @Column(name = "hash_id")
+    private String hashId;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
+    @JsonIgnore
     private Project project;
 
     @Column(name = "name")

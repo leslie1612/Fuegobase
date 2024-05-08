@@ -12,7 +12,6 @@ import org.chou.project.fuegobase.utils.HashIdUtil;
 @NoArgsConstructor
 public class Project {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore
@@ -27,11 +26,6 @@ public class Project {
     @Column(name = "name")
     private String name;
 
-    //    @PostLoad
-//    public void postLoad() {
-//        HashIdUtil hashIdUtil = new HashIdUtil();
-//        this.hashId = hashIdUtil.encoded(id);
-//    }
     @PostPersist
     private void createHashId() {
         HashIdUtil hashIdUtil = new HashIdUtil();
