@@ -112,22 +112,18 @@ public class FieldServiceImpl implements FieldService {
         List<Document> documents = new ArrayList<>();
 
         if (operator.equals("CONTAINS") && keys.length != 1) {
-            System.out.println("is error");
             throw new IllegalArgumentException();
         }
 
         if (operator.equals("CONTAINS") && keys.length <= 1) {
-            System.out.println("is array");
             documents = fieldKeyRepository.getDocumentsByArrayFilter(String.valueOf(cId), keys[0], value, valueType);
         } else {
             if (keys.length > 1 && !operator.equals("CONTAINS")) {
-                System.out.println("is map");
                 String fieldKey = keys[0];
                 String valueKey = keys[1];
                 documents = fieldKeyRepository.getDocumentsByMapFilter(String.valueOf(cId), fieldKey, valueKey,
                         value, valueType, operator);
             } else if (keys.length <= 1) {
-                System.out.println("others");
                 documents = fieldKeyRepository.getDocumentsByFilter(String.valueOf(cId), keys[0], value, valueType, operator);
             }
         }
@@ -135,9 +131,8 @@ public class FieldServiceImpl implements FieldService {
         List<FilterDocumentDto> result = new ArrayList<>();
         for (Document document : documents) {
             FilterDocumentDto filterDocumentDto = new FilterDocumentDto();
-//            filterDocumentDto.setId(document.getId());
+
             filterDocumentDto.setHashId(document.getHashId());
-//            filterDocumentDto.setCollectionId(document.getCollectionId());
             filterDocumentDto.setName(document.getName());
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
@@ -159,7 +154,6 @@ public class FieldServiceImpl implements FieldService {
         for (FieldProjection fieldProjection : fieldProjectionList) {
             ValueInfoData valueInfoData = new ValueInfoData();
             valueInfoData.setValue(fieldProjection.getValueName());
-//            valueInfoData.setValueId(fieldProjection.getValueId());
             valueInfoData.setValueHashId(fieldProjection.getValueHashId());
 
             fieldDtoList.forEach(fieldDto -> {
@@ -197,7 +191,6 @@ public class FieldServiceImpl implements FieldService {
             String[] keyInfo = ks.split("-");
             fieldDto.setId(Long.parseLong(keyInfo[0]));
             fieldDto.setHashId(keyInfo[1]);
-//            fieldDto.setDocumentId(Long.parseLong(keyInfo[2]));
             fieldDto.setKey(keyInfo[3]);
             fieldDto.setType(keyInfo[4]);
 
@@ -291,7 +284,6 @@ public class FieldServiceImpl implements FieldService {
 
         try {
             FieldDto fieldDto = new FieldDto();
-//            fieldDto.setId(fieldKey.getId());
             fieldDto.setHashId(fieldKey.getHashId());
             fieldDto.setDocumentId(fieldKey.getDocumentId());
             fieldDto.setKey(fieldKey.getName());

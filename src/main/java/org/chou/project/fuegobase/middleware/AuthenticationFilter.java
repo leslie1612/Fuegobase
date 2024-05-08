@@ -33,7 +33,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private final ObjectMapper jsonObjectMapper = new ObjectMapper();
     private final JwtTokenUtil jwtTokenUtil;
     private final UserRepository userRepository;
-
     private final AuthenticationService authenticationService;
 
     public AuthenticationFilter(AuthenticationService authenticationService, JwtTokenUtil jwtTokenUtil,

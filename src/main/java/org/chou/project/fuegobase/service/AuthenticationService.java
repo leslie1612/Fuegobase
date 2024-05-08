@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.security.ApiKeyAuthentication;
+import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
@@ -19,11 +20,14 @@ import java.net.URISyntaxException;
 public class AuthenticationService {
     private final ProjectRepository projectRepository;
     private final DomainNameRepository domainNameRepository;
+    private final HashIdUtil hashIdUtil;
 
     @Autowired
-    public AuthenticationService(ProjectRepository projectRepository, DomainNameRepository domainNameRepository) {
+    public AuthenticationService(ProjectRepository projectRepository, DomainNameRepository domainNameRepository,
+                                 HashIdUtil hashIdUtil) {
         this.projectRepository = projectRepository;
         this.domainNameRepository = domainNameRepository;
+        this.hashIdUtil = hashIdUtil;
     }
 
     public Authentication getAuthentication(HttpServletRequest request) {
@@ -32,6 +36,7 @@ public class AuthenticationService {
     }
 
     public Boolean validate(HttpServletRequest request, String projectId, String APIKey) throws URISyntaxException {
+        long id = hashIdUtil.decoded(projectId);
         String origin = request.getHeader(HttpHeaders.ORIGIN);
         if (origin == null) {
             return false;
@@ -40,11 +45,12 @@ public class AuthenticationService {
         String userDomain = uri.getHost();
         String[] uris = request.getRequestURI().split("/");
 
-        return projectRepository.validateByIdAndApiKey(Long.parseLong(projectId), APIKey) > 0 && domainValidate(userDomain, uris[5]);
+        return projectRepository.validateByIdAndApiKey(id, APIKey) > 0 && domainValidate(userDomain, uris[5]);
     }
 
     public Boolean domainValidate(String domain, String projectId) {
-        return domainNameRepository.findByDomainNameAndProjectId(domain, Long.parseLong(projectId)).orElse(null) != null;
+        long id = hashIdUtil.decoded(projectId);
+        return domainNameRepository.findByDomainNameAndProjectId(domain, id).orElse(null) != null;
     }
 
 }
