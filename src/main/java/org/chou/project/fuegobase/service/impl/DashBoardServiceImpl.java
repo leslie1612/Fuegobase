@@ -1,6 +1,7 @@
 package org.chou.project.fuegobase.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.chou.project.fuegobase.data.dto.ReadWriteLogDto;
 import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 import org.chou.project.fuegobase.repository.dashboard.DashboardRepository;
 import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
@@ -11,6 +12,12 @@ import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -67,9 +74,56 @@ public class DashBoardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<ReadWriteLog> getLastWeekReadWriteCount(String projectId) {
+    public List<ReadWriteLogDto> getLastWeekReadWriteCount(String projectId, String startDate, String endDate) throws ParseException {
         long id = hashIdUtil.decoded(projectId);
-        return readWriteLogRepository.findLastWeekReadWriteLogByProjectId(id);
+//        SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        Date convertedStartDate = formatter.parse(startDate);
+        Date convertedEndDate = formatter.parse(endDate);
+
+        List<ReadWriteLog> readWriteLogs = readWriteLogRepository.findLastWeekReadWriteLogByProjectId(id, convertedStartDate, convertedEndDate);
+
+        System.out.println(mapLogToDto(readWriteLogs, convertedStartDate, convertedEndDate));
+        return mapLogToDto(readWriteLogs, convertedStartDate, convertedEndDate);
+    }
+
+    public List<ReadWriteLogDto> mapLogToDto(List<ReadWriteLog> readWriteLogList, Date startDate, Date endDate) {
+        List<Date> allDates = new ArrayList<>();
+
+        Calendar calendar = Calendar.getInstance();
+        while (startDate.getTime() <= endDate.getTime()) {
+            allDates.add(startDate);
+            calendar.setTime(startDate);
+            calendar.add(Calendar.DATE, 1);
+            startDate = calendar.getTime();
+        }
+
+        List<ReadWriteLogDto> readWriteLogDtoList = new ArrayList<>();
+
+        for (Date date : allDates) {
+            ReadWriteLogDto readWriteLogDto = new ReadWriteLogDto();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String formattedDate = formatter.format(date);
+            readWriteLogDto.setDate(formattedDate);
+
+            for (ReadWriteLog readWriteLog : readWriteLogList) {
+                Date logDate = Date.from(readWriteLog.getDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                if (date.equals(logDate)) {
+                    readWriteLogDto.setReadCount(readWriteLog.getReadCount());
+                    readWriteLogDto.setWriteCount(readWriteLog.getWriteCount());
+                    break;
+                } else {
+                    readWriteLogDto.setReadCount(0);
+                    readWriteLogDto.setReadCount(0);
+                }
+            }
+
+            readWriteLogDtoList.add(readWriteLogDto);
+        }
+
+        return readWriteLogDtoList;
+
     }
 
 }

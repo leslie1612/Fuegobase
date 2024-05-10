@@ -2,15 +2,13 @@ package org.chou.project.fuegobase.controller.dashboard;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
+import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.DashboardService;
 import org.chou.project.fuegobase.service.s3.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -41,8 +39,17 @@ public class DashboardController {
     }
 
     @GetMapping("/count/readwrite/{id}")
-    public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") String projectId) {
-        return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getLastWeekReadWriteCount(projectId)));
+    public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") String projectId,
+                                                @RequestParam("startDate") String startDate,
+                                                @RequestParam("endDate") String endDate) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getLastWeekReadWriteCount(projectId, startDate, endDate)));
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+
     }
 
 

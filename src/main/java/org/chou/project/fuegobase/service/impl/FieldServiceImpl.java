@@ -137,7 +137,7 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
             for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
-                addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
+                addReadWriteNumber(String.valueOf(id), String.valueOf(fieldDto.getId()), "read");
             }
             result.add(filterDocumentDto);
         }
