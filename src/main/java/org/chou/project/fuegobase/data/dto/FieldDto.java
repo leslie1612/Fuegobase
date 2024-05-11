@@ -16,7 +16,7 @@ public class FieldDto {
     @JsonIgnore
     private long id;
 
-    @JsonProperty("hashId")
+    @JsonProperty("id")
     private String hashId;
 
     @JsonProperty("documentId")

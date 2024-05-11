@@ -84,7 +84,6 @@ public class DashBoardServiceImpl implements DashboardService {
 
         List<ReadWriteLog> readWriteLogs = readWriteLogRepository.findLastWeekReadWriteLogByProjectId(id, convertedStartDate, convertedEndDate);
 
-        System.out.println(mapLogToDto(readWriteLogs, convertedStartDate, convertedEndDate));
         return mapLogToDto(readWriteLogs, convertedStartDate, convertedEndDate);
     }
 
