@@ -15,10 +15,13 @@ import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,17 +35,19 @@ public class FieldServiceImpl implements FieldService {
     private FieldKeyRepository fieldKeyRepository;
     private FieldValueRepository fieldValueRepository;
     private HashIdUtil hashIdUtil;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository, HashIdUtil hashIdUtil) {
+                            FieldValueRepository fieldValueRepository, HashIdUtil hashIdUtil, RedisTemplate<String, String> redisTemplate) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
         this.fieldKeyRepository = fieldKeyRepository;
         this.fieldValueRepository = fieldValueRepository;
         this.hashIdUtil = hashIdUtil;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -343,17 +348,25 @@ public class FieldServiceImpl implements FieldService {
     }
 
     public void addReadWriteNumber(String projectId, String fieldId, String action) {
-        Map<String, String> readWriteLog = new HashMap<>();
+//        Map<String, String> readWriteLog = new HashMap<>();
+//
+//        readWriteLog.put("projectId", projectId);
+//        readWriteLog.put("fieldId", fieldId);
+//        readWriteLog.put("action", action);
+//
+//        LocalDateTime localDateTime = LocalDateTime.now();
+//        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+//        readWriteLog.put("Timestamp", date.toString());
 
-        readWriteLog.put("projectId", projectId);
-        readWriteLog.put("fieldId", fieldId);
-        readWriteLog.put("action", action);
+        long timeMillis = System.currentTimeMillis(); // get current timeMillis
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeMillis), ZoneId.systemDefault()); // local date time
+        ZonedDateTime zonedSys = localDateTime.atZone(ZoneId.systemDefault()); // system default zone date time
+        ZonedDateTime utcZone = zonedSys.withZoneSameInstant(ZoneId.of("UTC")); // convert to UTC
+        long UTCtimeMillis = utcZone.toInstant().toEpochMilli(); // convert zone date time back into timeMillis
 
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        readWriteLog.put("Timestamp", date.toString());
 
-        logger.info("/" + projectId + "/" + action + "/" + fieldId + "/once");
+        redisTemplate.opsForList().leftPush("logs", "/" + utcZone + "/" + projectId + "/" + action + "/" + fieldId + "/");
+//        logger.info("/" + projectId + "/" + action + "/" + fieldId + "/once");
 
     }
 }
