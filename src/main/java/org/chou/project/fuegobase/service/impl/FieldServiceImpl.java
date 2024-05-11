@@ -11,11 +11,13 @@ import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
+import org.chou.project.fuegobase.service.s3.S3Service;
 import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -36,11 +38,13 @@ public class FieldServiceImpl implements FieldService {
     private FieldValueRepository fieldValueRepository;
     private HashIdUtil hashIdUtil;
     private RedisTemplate<String, String> redisTemplate;
+    private S3Service s3Service;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
-                            FieldValueRepository fieldValueRepository, HashIdUtil hashIdUtil, RedisTemplate<String, String> redisTemplate) {
+                            FieldValueRepository fieldValueRepository, HashIdUtil hashIdUtil,
+                            RedisTemplate<String, String> redisTemplate, S3Service s3Service) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
@@ -48,6 +52,7 @@ public class FieldServiceImpl implements FieldService {
         this.fieldValueRepository = fieldValueRepository;
         this.hashIdUtil = hashIdUtil;
         this.redisTemplate = redisTemplate;
+        this.s3Service = s3Service;
     }
 
     @Override
@@ -86,7 +91,7 @@ public class FieldServiceImpl implements FieldService {
             fieldValue.setFieldType(fieldValueType);
 
             fieldValueRepository.save(fieldValue);
-            addReadWriteNumber(String.valueOf(dId), String.valueOf(savedFieldKey.getId()), "write");
+            addReadWriteNumber(String.valueOf(id), String.valueOf(savedFieldKey.getId()), "write");
 
         }
     }
@@ -142,7 +147,7 @@ public class FieldServiceImpl implements FieldService {
             filterDocumentDto.setFieldDtoList(mapProjectionToDto(fieldKeyRepository.fetchAllFieldsByDocumentId(document.getId())));
 
             for (FieldDto fieldDto : filterDocumentDto.getFieldDtoList()) {
-                addReadWriteNumber(projectId, String.valueOf(fieldDto.getId()), "read");
+                addReadWriteNumber(String.valueOf(id), String.valueOf(fieldDto.getId()), "read");
             }
             result.add(filterDocumentDto);
         }
@@ -348,25 +353,49 @@ public class FieldServiceImpl implements FieldService {
     }
 
     public void addReadWriteNumber(String projectId, String fieldId, String action) {
-//        Map<String, String> readWriteLog = new HashMap<>();
-//
-//        readWriteLog.put("projectId", projectId);
-//        readWriteLog.put("fieldId", fieldId);
-//        readWriteLog.put("action", action);
-//
-//        LocalDateTime localDateTime = LocalDateTime.now();
-//        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-//        readWriteLog.put("Timestamp", date.toString());
-
         long timeMillis = System.currentTimeMillis(); // get current timeMillis
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeMillis), ZoneId.systemDefault()); // local date time
         ZonedDateTime zonedSys = localDateTime.atZone(ZoneId.systemDefault()); // system default zone date time
         ZonedDateTime utcZone = zonedSys.withZoneSameInstant(ZoneId.of("UTC")); // convert to UTC
         long UTCtimeMillis = utcZone.toInstant().toEpochMilli(); // convert zone date time back into timeMillis
 
+        String log = "/" + utcZone + "/" + projectId + "/" + action + "/" + fieldId + "/";
 
-        redisTemplate.opsForList().leftPush("logs", "/" + utcZone + "/" + projectId + "/" + action + "/" + fieldId + "/");
-//        logger.info("/" + projectId + "/" + action + "/" + fieldId + "/once");
+        redisTemplate.opsForList().leftPush("logs", log);
+    }
 
+    @Scheduled(cron = "0 * * * * *")
+    public void getLogsfromRedis() {
+        if (getLock()) {
+            List<String> logs = redisTemplate.opsForList().range("logs", 0, -1);
+
+            if (logs != null && !logs.isEmpty()) {
+                for (String log : logs) {
+                    logger.info(log);
+                }
+                redisTemplate.opsForList().trim("logs", 1, 0);
+            }
+            unlock();
+        }
+    }
+
+    public Boolean getLock() {
+        try {
+            long count = redisTemplate.opsForValue().increment("lock", 1);
+            return count == 1;
+        } catch (Exception e) {
+            log.error("lock exception : " + e.getMessage());
+            redisTemplate.delete("lock");
+            return false;
+        }
+    }
+
+    public void unlock() {
+        try {
+            redisTemplate.delete("lock");
+        } catch (Exception e) {
+            log.error("unlock exception : " + e.getMessage());
+            redisTemplate.delete("lock");
+        }
     }
 }

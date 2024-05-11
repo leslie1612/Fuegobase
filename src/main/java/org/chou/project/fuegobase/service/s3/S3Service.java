@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.repository.dashboard.ReadWriteLogRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -33,14 +34,17 @@ public class S3Service {
     @Value("${s3.bucket.name}")
     private String bucketName;
     private ReadWriteLogRepository readWriteLogRepository;
+    private RedisTemplate<String, String> redisTemplate;
 
-    public S3Service(ReadWriteLogRepository readWriteLogRepository, AmazonS3 s3Client) {
+    public S3Service(ReadWriteLogRepository readWriteLogRepository, AmazonS3 s3Client, RedisTemplate<String, String> redisTemplate) {
         this.readWriteLogRepository = readWriteLogRepository;
         this.s3Client = s3Client;
+        this.redisTemplate = redisTemplate;
 
     }
 
-    @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Taipei")
+
+    @Scheduled(cron = "0 1 0 * * *")
     public void uploadLogs() {
         try {
             BasicAWSCredentials awsCredentials =
@@ -52,10 +56,10 @@ public class S3Service {
                     .build();
 
             File logsDir = new File("logs/");
+
             for (File logFile : logsDir.listFiles()) {
                 String fileName = logFile.getName();
                 String key = KEY_PREFIX + fileName;
-
 
                 if (fileName.startsWith(LocalDate.now().minusDays(1).toString())) {
                     log.info("upload log to S3");
@@ -63,9 +67,11 @@ public class S3Service {
                 }
             }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             log.error("Upload log fail: " + e.getMessage());
         }
     }
+
 
     public void downloadAndDeserializeLogs(AmazonS3 s3Client, String key) {
         try {

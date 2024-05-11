@@ -5,11 +5,12 @@
             class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
 
     <contextName>${hostname}</contextName>
+    <timestamp key="myTimestamp" datePattern="yyyy-MM-dd"/>
     <!-- for output on console -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                [logback] %d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
+                [logback] %d{yyyy-MM-dd} %-5level %logger{36} - %msg%n
             </Pattern>
         </layout>
     </appender>
@@ -18,7 +19,7 @@
     <!-- for output in a log file -->
     <appender name="FILEOUT"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/readwrite.log</file>
+        <file>logs/${myTimestamp}-start_${hostname}.readwrite.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
                 [logback] %d{yyyy-MM-dd HH:mm:ss} - %msg%n
