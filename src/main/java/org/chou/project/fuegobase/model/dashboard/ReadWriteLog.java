@@ -1,12 +1,13 @@
 package org.chou.project.fuegobase.model.dashboard;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 
 @Entity
@@ -21,6 +22,7 @@ public class ReadWriteLog {
     private Long id;
 
     @Column(name = "project_id")
+    @JsonIgnore
     private Long projectId;
 
     @Column(name = "read_count")
@@ -29,7 +31,7 @@ public class ReadWriteLog {
     @Column(name = "write_count")
     private int writeCount;
 
-    @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "operation_time")
+    private ZonedDateTime date;
 
 }

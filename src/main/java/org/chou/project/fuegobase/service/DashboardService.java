@@ -1,8 +1,8 @@
 package org.chou.project.fuegobase.service;
 
-import org.chou.project.fuegobase.data.dto.ReadWriteLogDto;
+import org.chou.project.fuegobase.data.dashboard.LogData;
+import org.chou.project.fuegobase.model.dashboard.ReadWriteLog;
 
-import java.text.ParseException;
 import java.util.List;
 
 public interface DashboardService {
@@ -12,7 +12,7 @@ public interface DashboardService {
 
     long getDocumentCount(String projectId);
 
-    List<ReadWriteLogDto> getLastWeekReadWriteCount(String projectId, String startDate, String endDate) throws ParseException;
+    List<ReadWriteLog> getReadWriteCount(String projectId, LogData logData);
 
 
 }

@@ -37,4 +37,9 @@ public class SettingsController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("/api/v1/healthcheck")
+    public String healthCheck() {
+        return "ok";
+    }
+
 }

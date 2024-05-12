@@ -2,6 +2,7 @@ package org.chou.project.fuegobase.controller.dashboard;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
+import org.chou.project.fuegobase.data.dashboard.LogData;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.DashboardService;
 import org.chou.project.fuegobase.service.s3.S3Service;
@@ -38,12 +39,11 @@ public class DashboardController {
         return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getDocumentCount(projectId)));
     }
 
-    @GetMapping("/count/readwrite/{id}")
+    @PostMapping("/count/readwrite/{id}")
     public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") String projectId,
-                                                @RequestParam("startDate") String startDate,
-                                                @RequestParam("endDate") String endDate) {
+                                                @RequestBody LogData logData) {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getLastWeekReadWriteCount(projectId, startDate, endDate)));
+            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getReadWriteCount(projectId, logData)));
         } catch (Exception e) {
             log.info(e.getMessage());
             e.printStackTrace();
@@ -51,16 +51,6 @@ public class DashboardController {
         }
 
     }
-
-
-//    @GetMapping("/count/test1")
-//    public void testGetReadLogFromS3() {
-//        System.out.println("start" + System.currentTimeMillis());
-//        s3Service.uploadLogs();
-//        System.out.println("done" + System.currentTimeMillis());
-//        System.out.println(LocalDate.now().minusDays(1).toString());
-//        System.out.println(LocalDate.now().toString());
-//    }
 
 
 }
