@@ -125,16 +125,25 @@ public class FieldServiceImpl implements FieldService {
             throw new IllegalArgumentException();
         }
 
-        if (operator.equals("CONTAINS") && keys.length <= 1) {
+        if (operator.equals("CONTAINS")) {
             documents = fieldKeyRepository.getDocumentsByArrayFilter(String.valueOf(cId), keys[0], value, valueType);
         } else {
-            if (keys.length > 1 && !operator.equals("CONTAINS")) {
+            if (keys.length > 1) {
                 String fieldKey = keys[0];
                 String valueKey = keys[1];
-                documents = fieldKeyRepository.getDocumentsByMapFilter(String.valueOf(cId), fieldKey, valueKey,
-                        value, valueType, operator);
-            } else if (keys.length <= 1) {
-                documents = fieldKeyRepository.getDocumentsByFilter(String.valueOf(cId), keys[0], value, valueType, operator);
+                if (valueType.equals("Number")) {
+                    documents = fieldKeyRepository.getDocumentsByMapFilterWithNumber(String.valueOf(cId), fieldKey, valueKey,
+                            value, valueType, operator);
+                } else {
+                    documents = fieldKeyRepository.getDocumentsByMapFilter(String.valueOf(cId), fieldKey, valueKey,
+                            value, valueType, operator);
+                }
+            } else {
+                if (valueType.equals("Number")) {
+                    documents = fieldKeyRepository.getDocumentsByFilterWithNumber(String.valueOf(cId), keys[0], value, valueType, operator);
+                } else {
+                    documents = fieldKeyRepository.getDocumentsByFilter(String.valueOf(cId), keys[0], value, valueType, operator);
+                }
             }
         }
 
@@ -364,7 +373,7 @@ public class FieldServiceImpl implements FieldService {
         redisTemplate.opsForList().leftPush("logs", log);
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(fixedRate = 60 * 60 * 1000, initialDelay = 10 * 60 * 1000)
     public void getLogsfromRedis() {
         if (getLock()) {
             List<String> logs = redisTemplate.opsForList().range("logs", 0, -1);

@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.controller.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.service.ProjectService;
@@ -8,6 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+@Slf4j
 @RestController
 public class SettingsController {
 
@@ -39,7 +44,13 @@ public class SettingsController {
 
     @GetMapping("/api/v1/healthcheck")
     public String healthCheck() {
-        return "ok";
+        try {
+            String ip = InetAddress.getLocalHost().getHostAddress();
+            return ip + " ok";
+        } catch (UnknownHostException e) {
+            log.error("unknownHost error : " + e.getMessage());
+            return "ok";
+        }
     }
 
 }
