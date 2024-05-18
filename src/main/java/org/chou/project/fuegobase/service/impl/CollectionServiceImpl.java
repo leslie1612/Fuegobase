@@ -50,9 +50,14 @@ public class CollectionServiceImpl implements CollectionService {
     }
 
     @Override
-    public List<Collection> getCollections(String projectId) {
+    public List<Collection> getCollections(String projectId) throws IllegalArgumentException {
         long id = hashIdUtil.decoded(projectId);
-        return collectionRepository.getCollectionsByProjectId(id);
+        if (id > 0) {
+            return collectionRepository.getCollectionsByProjectId(id);
+        } else {
+            log.error("decode hash Id error");
+            throw new IllegalArgumentException("Collection not found.");
+        }
     }
 
     @Override

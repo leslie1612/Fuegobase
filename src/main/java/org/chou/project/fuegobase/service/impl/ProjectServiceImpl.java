@@ -72,11 +72,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void deleteProject(String projectId) {
+    @Transactional
+    public void deleteProject(String projectId, String token) {
         long id = hashIdUtil.decoded(projectId);
-        projectRepository.findById(id).orElseThrow();
-        projectRepository.deleteById(id);
-        log.info("Delete project by : " + projectId + " successfully!");
+        User user = userService.getUserByToken(token);
+        projectRepository.deleteProjectByIdAndUserId(id, user.getId());
     }
 
     @Override

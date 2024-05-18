@@ -65,6 +65,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
+
             }
             // check APIKey and domain
             if (APIKey != null && authenticationService.validate(request, projectId, APIKey)) {
@@ -76,7 +77,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.error("Filter error " + e.getMessage());
             Map<String, String> errorMsg = new HashMap<>();
-            errorMsg.put("Error ", e.getMessage());
+            errorMsg.put("Error ", "authentication fail");
             handleException(response, HttpStatus.UNAUTHORIZED.value(), errorMsg);
         }
     }

@@ -14,7 +14,7 @@ public interface ProjectService {
 
     List<Project> getProjects(String token);
 
-    void deleteProject(String projectId);
+    void deleteProject(String projectId, String token);
 
     void addDomainNameWhiteList(String projectId, DomainNameData domainNameData);
 

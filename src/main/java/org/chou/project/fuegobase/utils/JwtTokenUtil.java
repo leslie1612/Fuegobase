@@ -44,11 +44,6 @@ public class JwtTokenUtil {
         return parseToken(token).getSubject();
     }
 
-//    @SuppressWarnings("unchecked")
-//    public List<SimpleGrantedAuthority> getUserAuthoritiesFromToken(String token) {
-//        List<String> userRoles = parseToken(token).get(CLAIMS_KEY_USER_ROLES, List.class);
-//        return userRoles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-//    }
 
     public Date getExpirationDateFromToken(String token) {
         return parseToken(token).getExpiration();

@@ -50,9 +50,11 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<?> deleteProject(@PathVariable("projectId") String projectId) {
+    public ResponseEntity<?> deleteProject(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                           @PathVariable("projectId") String projectId) {
+        String token = authorization.split(" ")[1].trim();
         try {
-            projectService.deleteProject(projectId);
+            projectService.deleteProject(projectId, token);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Project not found."));

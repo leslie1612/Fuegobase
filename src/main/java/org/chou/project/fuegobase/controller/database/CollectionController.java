@@ -1,5 +1,6 @@
 package org.chou.project.fuegobase.controller.database;
 
+import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.CollectionData;
 import org.chou.project.fuegobase.error.ErrorResponse;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.NoSuchElementException;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections")
 public class CollectionController {
@@ -43,9 +45,14 @@ public class CollectionController {
 
     @GetMapping
     public ResponseEntity<?> getCollections(@PathVariable String projectId) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new GenericResponse<>(collectionService.getCollections(projectId)));
+        try {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new GenericResponse<>(collectionService.getCollections(projectId)));
+        } catch (IllegalArgumentException e) {
+            log.error("get collection error : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
     }
 
     @GetMapping("/{collectionId}")
