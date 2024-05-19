@@ -30,9 +30,8 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     }
 
     @Override
-    public List<Document> getDocumentsByFilter(String collectionId, String keyName, String valueName,
+    public List<Document> getDocumentsByFilter(long collectionId, String keyName, String valueName,
                                                String type, String operator) {
-//        String op = getOperator(operator);
 
         String query = """
                 SELECT d.id, d.hash_id ,d.name, d.collection_id
@@ -52,8 +51,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     }
 
     @Override
-    public List<Document> getDocumentsByFilterWithNumber(String collectionId, String keyName, String valueName, String type, String operator) {
-//        String op = getOperator(operator);
+    public List<Document> getDocumentsByFilterWithNumber(long collectionId, String keyName, String valueName, String type, String operator) {
 
         String query = """
                  SELECT d.id, d.hash_id ,d.name, d.collection_id, v.value_name
@@ -73,7 +71,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     }
 
     @Override
-    public List<Document> getDocumentsByArrayFilter(String collectionId, String keyName, String valueName, String valueType) {
+    public List<Document> getDocumentsByArrayFilter(long collectionId, String keyName, String valueName, String valueType) {
 
         String query = """
                 SELECT d.id, d.hash_id, d.name, d.collection_id
@@ -94,9 +92,8 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     }
 
     @Override
-    public List<Document> getDocumentsByMapFilter(String collectionId, String fieldKey, String valueKey,
+    public List<Document> getDocumentsByMapFilter(long collectionId, String fieldKey, String valueKey,
                                                   String valueName, String valueType, String operator) {
-//        String op = getOperator(operator);
 
         String query = """
                 SELECT d.id, d.hash_id, d.name, d.collection_id
@@ -118,8 +115,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     }
 
     @Override
-    public List<Document> getDocumentsByMapFilterWithNumber(String collectionId, String fieldKey, String valueKey, String valueName, String valueType, String operator) {
-//        String op = getOperator(operator);
+    public List<Document> getDocumentsByMapFilterWithNumber(long collectionId, String fieldKey, String valueKey, String valueName, String valueType, String operator) {
 
         String query = """
                 SELECT d.id, d.hash_id, d.name, d.collection_id, v.value_name
@@ -139,56 +135,4 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                 .setParameter(5, valueType)
                 .getResultList();
     }
-
-//    public String getOperator(String operator) {
-//        enum Operator {
-//            EQUAL,
-//            GREATER_THAN,
-//            LESS_THAN,
-//            GREATER_THAN_OR_EQUAL,
-//            LESS_THAN_OR_EQUAL,
-//            CONTAINS
-//        }
-//
-//        return switch (Operator.valueOf(operator)) {
-//            case EQUAL -> "=";
-//            case GREATER_THAN -> ">";
-//            case LESS_THAN -> "<";
-//            case GREATER_THAN_OR_EQUAL -> ">=";
-//            case LESS_THAN_OR_EQUAL -> "<=";
-//            default -> "";
-//        };
-//    }
-//    public String getOperator(String operator) {
-//        enum Operator {
-//            EQUAL,
-//            GREATER_THAN,
-//            LESS_THAN,
-//            GREATER_THAN_OR_EQUAL,
-//            LESS_THAN_OR_EQUAL,
-//            CONTAINS
-//        }
-//        String op = "";
-//
-//        switch (Operator.valueOf(operator)) {
-//            case EQUAL:
-//                op = "=";
-//                break;
-//            case GREATER_THAN:
-//                op = ">";
-//                break;
-//            case LESS_THAN:
-//                op = "<";
-//                break;
-//            case GREATER_THAN_OR_EQUAL:
-//                op = ">=";
-//                break;
-//            case LESS_THAN_OR_EQUAL:
-//                op = "<=";
-//                break;
-//        }
-//        return op;
-//    }
-
-
 }

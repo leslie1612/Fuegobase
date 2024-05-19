@@ -112,36 +112,36 @@ public class FieldServiceImpl implements FieldService {
 
     @Override
     public List<FilterDocumentDto> getFieldsByFilter(String projectId, String collectionId, String filter,
-                                                     String value, String valueType, String operator) throws IllegalArgumentException {
+                                                     String value, String valueType, String operator) {
         long id = hashIdUtil.decoded(projectId);
         long cId = hashIdUtil.decoded(collectionId);
 
         collectionRepository.findByProjectIdAndId(id, cId).orElseThrow();
         String[] keys = filter.split("\\.");
-        List<Document> documents = new ArrayList<>();
+        List<Document> documents;
 
         if (operator.equals("CONTAINS") && keys.length != 1) {
             throw new IllegalArgumentException();
         }
 
         if (operator.equals("CONTAINS")) {
-            documents = fieldKeyRepository.getDocumentsByArrayFilter(String.valueOf(cId), keys[0], value, valueType);
+            documents = fieldKeyRepository.getDocumentsByArrayFilter(cId, keys[0], value, valueType);
         } else {
             if (keys.length > 1) {
                 String fieldKey = keys[0];
                 String valueKey = keys[1];
                 if (valueType.equals("Number")) {
-                    documents = fieldKeyRepository.getDocumentsByMapFilterWithNumber(String.valueOf(cId), fieldKey, valueKey,
+                    documents = fieldKeyRepository.getDocumentsByMapFilterWithNumber(cId, fieldKey, valueKey,
                             value, valueType, operator);
                 } else {
-                    documents = fieldKeyRepository.getDocumentsByMapFilter(String.valueOf(cId), fieldKey, valueKey,
+                    documents = fieldKeyRepository.getDocumentsByMapFilter(cId, fieldKey, valueKey,
                             value, valueType, operator);
                 }
             } else {
                 if (valueType.equals("Number")) {
-                    documents = fieldKeyRepository.getDocumentsByFilterWithNumber(String.valueOf(cId), keys[0], value, valueType, operator);
+                    documents = fieldKeyRepository.getDocumentsByFilterWithNumber(cId, keys[0], value, valueType, operator);
                 } else {
-                    documents = fieldKeyRepository.getDocumentsByFilter(String.valueOf(cId), keys[0], value, valueType, operator);
+                    documents = fieldKeyRepository.getDocumentsByFilter(cId, keys[0], value, valueType, operator);
                 }
             }
         }
