@@ -52,14 +52,14 @@ public class APIKeyServiceImpl implements APIKeyService {
         if (existingAPIList.size() > 2) {
             throw new APIKeyException("Maximum number of API keys exceeded for this project");
         } else if (existingAPIList.isEmpty()) {
-            Project project = projectRepository.findById(id).orElse(null);
+            Project project = projectRepository.findById(id).orElseThrow();
             apiKey.setProject(project);
         } else {
             apiKey.setProject(existingAPIList.get(0).getProject());
         }
         apiKey.setName(apiKeyGenerator.generateApiKey());
 
-        LocalDateTime now = LocalDateTime.now().plusDays(30);
+        LocalDateTime now = LocalDateTime.now().plusDays(90);
         apiKey.setExpirationTime(Timestamp.valueOf(now));
         apiKeyRepository.save(apiKey);
         return apiKey;
@@ -74,7 +74,8 @@ public class APIKeyServiceImpl implements APIKeyService {
     @Override
     public List<APIKey> getAllAPIKey(String projectId) {
         long id = hashIdUtil.decoded(projectId);
-        return apiKeyRepository.findAllByProjectId(id);
+        Project project = projectRepository.findById(id).orElseThrow();
+        return apiKeyRepository.findAllByProjectId(project.getId());
     }
 
 }

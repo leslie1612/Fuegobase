@@ -11,7 +11,6 @@ import org.chou.project.fuegobase.model.database.FieldType;
 import org.chou.project.fuegobase.model.database.FieldValue;
 import org.chou.project.fuegobase.repository.database.*;
 import org.chou.project.fuegobase.service.FieldService;
-import org.chou.project.fuegobase.service.s3.S3Service;
 import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,20 +30,19 @@ import java.util.stream.Collectors;
 @Service
 public class FieldServiceImpl implements FieldService {
     private static final Logger logger = LoggerFactory.getLogger(FieldServiceImpl.class);
-    private CollectionRepository collectionRepository;
-    private DocumentRepository documentRepository;
-    private FieldTypeRepository fieldTypeRepository;
-    private FieldKeyRepository fieldKeyRepository;
-    private FieldValueRepository fieldValueRepository;
-    private HashIdUtil hashIdUtil;
-    private RedisTemplate<String, String> redisTemplate;
-    private S3Service s3Service;
+    private final CollectionRepository collectionRepository;
+    private final DocumentRepository documentRepository;
+    private final FieldTypeRepository fieldTypeRepository;
+    private final FieldKeyRepository fieldKeyRepository;
+    private final FieldValueRepository fieldValueRepository;
+    private final HashIdUtil hashIdUtil;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     public FieldServiceImpl(CollectionRepository collectionRepository, DocumentRepository documentRepository,
                             FieldTypeRepository fieldTypeRepository, FieldKeyRepository fieldKeyRepository,
                             FieldValueRepository fieldValueRepository, HashIdUtil hashIdUtil,
-                            RedisTemplate<String, String> redisTemplate, S3Service s3Service) {
+                            RedisTemplate<String, String> redisTemplate) {
         this.collectionRepository = collectionRepository;
         this.documentRepository = documentRepository;
         this.fieldTypeRepository = fieldTypeRepository;
@@ -52,7 +50,6 @@ public class FieldServiceImpl implements FieldService {
         this.fieldValueRepository = fieldValueRepository;
         this.hashIdUtil = hashIdUtil;
         this.redisTemplate = redisTemplate;
-        this.s3Service = s3Service;
     }
 
     @Override
@@ -370,7 +367,11 @@ public class FieldServiceImpl implements FieldService {
 
     public Boolean getLock() {
         try {
-            long count = redisTemplate.opsForValue().increment("lock", 1);
+            long count = 0;
+            Long i = redisTemplate.opsForValue().increment("lock", 1);
+            if (i != null) {
+                count = i;
+            }
             return count == 1;
         } catch (Exception e) {
             log.error("lock exception : " + e.getMessage());

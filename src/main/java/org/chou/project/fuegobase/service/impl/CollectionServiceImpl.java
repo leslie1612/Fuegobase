@@ -5,7 +5,6 @@ import org.chou.project.fuegobase.data.database.CollectionData;
 import org.chou.project.fuegobase.exception.ResourceNotFoundException;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
-import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.CollectionService;
 import org.chou.project.fuegobase.utils.HashIdUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +18,12 @@ import java.util.NoSuchElementException;
 public class CollectionServiceImpl implements CollectionService {
 
     private final CollectionRepository collectionRepository;
-    private final ProjectRepository projectRepository;
     private final HashIdUtil hashIdUtil;
 
 
     @Autowired
-    public CollectionServiceImpl(CollectionRepository collectionRepository, ProjectRepository projectRepository, HashIdUtil hashIdUtil) {
+    public CollectionServiceImpl(CollectionRepository collectionRepository, HashIdUtil hashIdUtil) {
         this.collectionRepository = collectionRepository;
-        this.projectRepository = projectRepository;
         this.hashIdUtil = hashIdUtil;
 
     }

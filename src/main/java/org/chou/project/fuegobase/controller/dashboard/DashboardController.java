@@ -3,7 +3,6 @@ package org.chou.project.fuegobase.controller.dashboard;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.dashboard.LogData;
-import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,12 +22,7 @@ public class DashboardController {
 
     @GetMapping("/storage/{id}")
     public ResponseEntity<?> getStorageData(@PathVariable("id") String projectId) {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getStorage(projectId)));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
-        }
-
+        return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getStorage(projectId)));
     }
 
     @GetMapping("/collections/{id}")
@@ -44,14 +38,7 @@ public class DashboardController {
     @PostMapping("/count/readwrite/{id}")
     public ResponseEntity<?> getReadWriteCounts(@PathVariable("id") String projectId,
                                                 @RequestBody LogData logData) {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getReadWriteCount(projectId, logData)));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
-        }
-
+        return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getReadWriteCount(projectId, logData)));
     }
-
 
 }

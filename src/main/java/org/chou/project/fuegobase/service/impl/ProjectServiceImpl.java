@@ -87,8 +87,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void addDomainNameWhiteList(String projectId, DomainNameData domainNameData) {
         long id = hashIdUtil.decoded(projectId);
+        Project project = projectRepository.findById(id).orElseThrow();
         DomainNameWhitelist domainNameWhitelist = new DomainNameWhitelist();
-        domainNameWhitelist.setProjectId(id);
+        domainNameWhitelist.setProjectId(project.getId());
         domainNameWhitelist.setDomainName(domainNameData.getDomainName());
         domainNameWhitelist.setType("Custom");
 
@@ -111,6 +112,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void deleteDomainName(String projectId, long domainNameId) {
+        long id = hashIdUtil.decoded(projectId);
+
+        projectRepository.findById(id).orElseThrow();
         domainNameRepository.deleteById(domainNameId);
     }
 

@@ -64,7 +64,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             // check jwt
             if (token != null && jwtTokenUtil.validate(token)) {
                 UserDetails userDetails = userRepository.getUserDetailsByToken(token);
-                if (path.equals("/api/v1/databases/projects") || authenticationService.validateByJWT(userDetails, projectId)) {
+                if (path.equals("/api/v1/databases/projects") ||
+                        path.startsWith("/api/v1/security/project/") ||
+                        authenticationService.validateByJWT(userDetails, projectId)) {
                     UsernamePasswordAuthenticationToken authAfterSuccessLogin = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
                     authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
