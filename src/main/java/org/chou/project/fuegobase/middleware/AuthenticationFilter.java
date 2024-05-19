@@ -53,7 +53,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String[] uri = request.getRequestURI().split("/");
         String projectId = null;
 
+        String path = request.getRequestURI();
+
         try {
+
             if (uri.length > 5) {
                 projectId = uri[5];
             }
@@ -61,12 +64,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             // check jwt
             if (token != null && jwtTokenUtil.validate(token)) {
                 UserDetails userDetails = userRepository.getUserDetailsByToken(token);
-                UsernamePasswordAuthenticationToken authAfterSuccessLogin = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
-
+                if (path.equals("/api/v1/databases/projects") || authenticationService.validateByJWT(userDetails, projectId)) {
+                    UsernamePasswordAuthenticationToken authAfterSuccessLogin = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
+                }
             }
+
             // check APIKey and domain
             if (APIKey != null && authenticationService.validate(request, projectId, APIKey)) {
                 Authentication authentication = authenticationService.getAuthentication(request);

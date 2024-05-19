@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.model.database.Document;
+import org.chou.project.fuegobase.model.enums.Operator;
 
 import java.util.List;
 
@@ -24,22 +25,13 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                 JOIN field_type ft ON v.value_type_id = ft.id
                 WHERE k.document_id = %d
                 """;
-//        String query = """
-//                SELECT k.id AS id, k.document_id AS documentId, k.name, t.type_name AS keyType, v.key_name AS keyName,
-//                    v.id AS valueId, v.value_name AS valueName, ft.type_name AS valueType
-//                FROM field_key k
-//                JOIN field_value v ON k.id = v.field_key_id
-//                JOIN field_type t ON k.type_id = t.id
-//                JOIN field_type ft ON v.value_type_id = ft.id
-//                WHERE k.document_id = %d
-//                """;
         return entityManager.createNativeQuery(query.formatted(documentId), FieldProjection.class).getResultList();
     }
 
     @Override
     public List<Document> getDocumentsByFilter(String collectionId, String keyName, String valueName,
                                                String type, String operator) {
-        String op = getOperator(operator);
+//        String op = getOperator(operator);
 
         String query = """
                 SELECT d.id, d.hash_id ,d.name, d.collection_id
@@ -48,7 +40,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                 JOIN field_key k ON d.id = k.document_id
                 JOIN field_value v ON k.id = v.field_key_id
                 JOIN field_type ft ON k.type_id = ft.id
-                WHERE c.id = ?1 AND k.name = ?2 AND ft.type_name = ?3 AND v.value_name """ + op + "?4 AND v.key_name IS NULL";
+                WHERE c.id = ?1 AND k.name = ?2 AND ft.type_name = ?3 AND v.value_name """ + Operator.valueOf(operator).getSymbol() + "?4 AND v.key_name IS NULL";
 
         return entityManager.createNativeQuery(query, Document.class)
                 .setParameter(1, collectionId)
@@ -60,7 +52,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
 
     @Override
     public List<Document> getDocumentsByFilterWithNumber(String collectionId, String keyName, String valueName, String type, String operator) {
-        String op = getOperator(operator);
+//        String op = getOperator(operator);
 
         String query = """
                  SELECT d.id, d.hash_id ,d.name, d.collection_id, v.value_name
@@ -69,7 +61,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                  JOIN field_key k ON d.id = k.document_id
                  JOIN field_value v ON k.id = v.field_key_id
                  JOIN field_type ft ON k.type_id = ft.id
-                WHERE c.id = ?1 AND k.name = ?2 AND ft.type_name = ?3 AND CAST(v.value_name AS DECIMAL(10,2)) """ + op + "?4 AND v.key_name IS NULL";
+                WHERE c.id = ?1 AND k.name = ?2 AND ft.type_name = ?3 AND CAST(v.value_name AS DECIMAL(10,2)) """ + Operator.valueOf(operator).getSymbol() + "?4 AND v.key_name IS NULL";
 
         return entityManager.createNativeQuery(query, Document.class)
                 .setParameter(1, collectionId)
@@ -103,7 +95,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     @Override
     public List<Document> getDocumentsByMapFilter(String collectionId, String fieldKey, String valueKey,
                                                   String valueName, String valueType, String operator) {
-        String op = getOperator(operator);
+//        String op = getOperator(operator);
 
         String query = """
                 SELECT d.id, d.hash_id, d.name, d.collection_id
@@ -112,7 +104,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                 JOIN field_key k ON d.id = k.document_id
                 JOIN field_value v ON k.id = v.field_key_id
                 JOIN field_type ft ON v.value_type_id = ft.id
-                WHERE c.id = ?1 AND k.name = ?2 AND  v.key_name = ?3 AND v.value_name""" + op + " ?4 AND ft.type_name = ?5 AND k.type_id = 5";
+                WHERE c.id = ?1 AND k.name = ?2 AND  v.key_name = ?3 AND v.value_name""" + Operator.valueOf(operator).getSymbol() + " ?4 AND ft.type_name = ?5 AND k.type_id = 5";
         ;
 
         return entityManager.createNativeQuery(query, Document.class)
@@ -126,7 +118,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
 
     @Override
     public List<Document> getDocumentsByMapFilterWithNumber(String collectionId, String fieldKey, String valueKey, String valueName, String valueType, String operator) {
-        String op = getOperator(operator);
+//        String op = getOperator(operator);
 
         String query = """
                 SELECT d.id, d.hash_id, d.name, d.collection_id, v.value_name
@@ -135,7 +127,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                 JOIN field_key k ON d.id = k.document_id
                 JOIN field_value v ON k.id = v.field_key_id
                 JOIN field_type ft ON v.value_type_id = ft.id
-                WHERE c.id = ?1 AND k.name = ?2 AND  v.key_name = ?3 AND CAST(v.value_name AS DECIMAL(10,2))""" + op + " ?4 AND ft.type_name = ?5 AND k.type_id = 5";
+                WHERE c.id = ?1 AND k.name = ?2 AND  v.key_name = ?3 AND CAST(v.value_name AS DECIMAL(10,2))""" + Operator.valueOf(operator).getSymbol() + " ?4 AND ft.type_name = ?5 AND k.type_id = 5";
         ;
 
         return entityManager.createNativeQuery(query, Document.class)
@@ -147,36 +139,55 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
                 .getResultList();
     }
 
-    public String getOperator(String operator) {
-        enum Operator {
-            EQUAL,
-            GREATER_THAN,
-            LESS_THAN,
-            GREATER_THAN_OR_EQUAL,
-            LESS_THAN_OR_EQUAL,
-            CONTAINS
-        }
-        String op = "";
-
-        switch (Operator.valueOf(operator)) {
-            case EQUAL:
-                op = "=";
-                break;
-            case GREATER_THAN:
-                op = ">";
-                break;
-            case LESS_THAN:
-                op = "<";
-                break;
-            case GREATER_THAN_OR_EQUAL:
-                op = ">=";
-                break;
-            case LESS_THAN_OR_EQUAL:
-                op = "<=";
-                break;
-        }
-        return op;
-    }
+//    public String getOperator(String operator) {
+//        enum Operator {
+//            EQUAL,
+//            GREATER_THAN,
+//            LESS_THAN,
+//            GREATER_THAN_OR_EQUAL,
+//            LESS_THAN_OR_EQUAL,
+//            CONTAINS
+//        }
+//
+//        return switch (Operator.valueOf(operator)) {
+//            case EQUAL -> "=";
+//            case GREATER_THAN -> ">";
+//            case LESS_THAN -> "<";
+//            case GREATER_THAN_OR_EQUAL -> ">=";
+//            case LESS_THAN_OR_EQUAL -> "<=";
+//            default -> "";
+//        };
+//    }
+//    public String getOperator(String operator) {
+//        enum Operator {
+//            EQUAL,
+//            GREATER_THAN,
+//            LESS_THAN,
+//            GREATER_THAN_OR_EQUAL,
+//            LESS_THAN_OR_EQUAL,
+//            CONTAINS
+//        }
+//        String op = "";
+//
+//        switch (Operator.valueOf(operator)) {
+//            case EQUAL:
+//                op = "=";
+//                break;
+//            case GREATER_THAN:
+//                op = ">";
+//                break;
+//            case LESS_THAN:
+//                op = "<";
+//                break;
+//            case GREATER_THAN_OR_EQUAL:
+//                op = ">=";
+//                break;
+//            case LESS_THAN_OR_EQUAL:
+//                op = "<=";
+//                break;
+//        }
+//        return op;
+//    }
 
 
 }

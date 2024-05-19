@@ -13,12 +13,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     Boolean existsByNameAndUserId(String projectName, long userId);
 
-    List<Project> getProjectsByUserId(Long userId);
+    List<Project> getProjectsByUserId(long userId);
 
     @Query(value = "SELECT SUM(LENGTH(name)+1) / 1024 FROM project WHERE id = :id", nativeQuery = true)
     float countSizeOfProject(@Param("id") long projectId);
 
     void deleteProjectByIdAndUserId(long projectId, long userId);
 
-    Boolean findProjectByIdAndUserId(long projectId, long userId);
+    Boolean existsByIdAndUserId(long projectId, long userId);
 }

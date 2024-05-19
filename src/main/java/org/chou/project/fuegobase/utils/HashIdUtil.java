@@ -26,7 +26,7 @@ public class HashIdUtil {
         if (hashids.decode(hId).length > 0) {
             return hashids.decode(hId)[0];
         } else {
-            return -1;
+            throw new IllegalArgumentException("ID not exist.");
         }
     }
 }

@@ -14,4 +14,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleIllegalAccessError(IllegalAccessError e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("access denied"));
     }
+
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentExceptionException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+    }
 }

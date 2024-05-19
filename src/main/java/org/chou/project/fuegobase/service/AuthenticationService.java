@@ -61,7 +61,7 @@ public class AuthenticationService {
     public Boolean validateByJWT(UserDetails userDetails, String projectId) {
         long id = hashIdUtil.decoded(projectId);
         User user = userRepository.findByEmail(userDetails.getUsername());
-        return projectRepository.findProjectByIdAndUserId(id, user.getId());
+        return projectRepository.existsByIdAndUserId(id, user.getId());
     }
 
 }

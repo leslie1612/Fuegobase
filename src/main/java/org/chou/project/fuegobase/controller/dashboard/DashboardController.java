@@ -5,7 +5,6 @@ import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.dashboard.LogData;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.service.DashboardService;
-import org.chou.project.fuegobase.service.s3.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +15,20 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/dashboard")
 public class DashboardController {
     private final DashboardService dashboardService;
-    private final S3Service s3Service;
 
     @Autowired
-    public DashboardController(DashboardService dashboardService, S3Service s3Service) {
+    public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
-        this.s3Service = s3Service;
     }
 
     @GetMapping("/storage/{id}")
     public ResponseEntity<?> getStorageData(@PathVariable("id") String projectId) {
-        return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getStorage(projectId)));
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getStorage(projectId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+
     }
 
     @GetMapping("/collections/{id}")
@@ -45,8 +47,7 @@ public class DashboardController {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(new GenericResponse<>(dashboardService.getReadWriteCount(projectId, logData)));
         } catch (Exception e) {
-            log.info(e.getMessage());
-            e.printStackTrace();
+            log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 

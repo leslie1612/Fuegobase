@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.DomainNameData;
 import org.chou.project.fuegobase.data.database.ProjectData;
 import org.chou.project.fuegobase.data.dto.DomainNameListDto;
+import org.chou.project.fuegobase.exception.ResourceNotFoundException;
 import org.chou.project.fuegobase.model.database.DomainNameWhitelist;
 import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.model.user.User;
@@ -73,10 +74,14 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void deleteProject(String projectId, String token) {
+    public void deleteProject(String projectId, String token) throws ResourceNotFoundException {
         long id = hashIdUtil.decoded(projectId);
         User user = userService.getUserByToken(token);
-        projectRepository.deleteProjectByIdAndUserId(id, user.getId());
+        if (projectRepository.existsByIdAndUserId(id, user.getId())) {
+            projectRepository.deleteProjectByIdAndUserId(id, user.getId());
+        } else {
+            throw new ResourceNotFoundException("Project Not Found");
+        }
     }
 
     @Override

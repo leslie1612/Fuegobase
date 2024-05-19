@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.middleware.AuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,7 +37,6 @@ public class SecurityConfiguration {
         http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests((requests) -> requests.requestMatchers(
                                 "/api/v1/databases/projects/**",
                                 "/api/v1/databases/whitelist/**",

@@ -2,8 +2,8 @@ package org.chou.project.fuegobase.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.chou.project.fuegobase.data.database.CollectionData;
+import org.chou.project.fuegobase.exception.ResourceNotFoundException;
 import org.chou.project.fuegobase.model.database.Collection;
-import org.chou.project.fuegobase.model.database.Project;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
 import org.chou.project.fuegobase.repository.database.ProjectRepository;
 import org.chou.project.fuegobase.service.CollectionService;
@@ -36,7 +36,6 @@ public class CollectionServiceImpl implements CollectionService {
 
         long id = hashIdUtil.decoded(projectId);
 
-        Project project = projectRepository.findById(id).orElseThrow();
         if (isCollectionNameExistOrNot(id, collectionData.getName())) {
             throw new IllegalArgumentException("Name can not be repeated.");
         }
@@ -45,46 +44,37 @@ public class CollectionServiceImpl implements CollectionService {
         collection.setProjectId(id);
 
         collectionRepository.save(collection);
-
-
     }
 
     @Override
-    public List<Collection> getCollections(String projectId) throws IllegalArgumentException {
+    public List<Collection> getCollections(String projectId) {
         long id = hashIdUtil.decoded(projectId);
-        if (id > 0) {
-            return collectionRepository.getCollectionsByProjectId(id);
-        } else {
-            log.error("decode hash Id error");
-            throw new IllegalArgumentException("Collection not found.");
-        }
+        return collectionRepository.getCollectionsByProjectId(id);
     }
 
     @Override
     public Collection updateCollectionById(String projectId,
                                            String collectionId,
                                            CollectionData updatedCollection) {
-
-
         Collection existingCollection = findCollectionByProjectIdAndId(projectId, collectionId);
         if (existingCollection != null) {
             existingCollection.setName(updatedCollection.getName());
             collectionRepository.save(existingCollection);
         } else {
-            throw new NoSuchElementException("Collection not found.");
+            throw new ResourceNotFoundException("Collection not found.");
         }
         return existingCollection;
-
     }
 
     @Override
     public void deleteCollection(String projectId, String collectionId) {
         long cId = hashIdUtil.decoded(collectionId);
-
-        findCollectionByProjectIdAndId(projectId, collectionId);
-        collectionRepository.deleteById(cId);
-        log.info("Delete collection by " + collectionId + " successfully!");
-
+        try {
+            findCollectionByProjectIdAndId(projectId, collectionId);
+            collectionRepository.deleteById(cId);
+        } catch (NoSuchElementException e) {
+            throw new ResourceNotFoundException("Collection not found.");
+        }
     }
 
 

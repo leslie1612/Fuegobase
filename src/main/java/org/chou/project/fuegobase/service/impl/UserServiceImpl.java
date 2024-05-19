@@ -46,18 +46,20 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        UserDto userDto = new UserDto();
-        userDto.setId(savedUser.getId());
-        userDto.setEmail(savedUser.getEmail());
-        userDto.setName(savedUser.getName());
+        return mapUserToUserDto(savedUser);
 
-        SignInDto signInDto = new SignInDto();
-        String token = createAccessToken(savedUser);
-        signInDto.setAccessToken(token);
-        signInDto.setAccessExpired(jwtTokenUtil.getExpirationDateFromToken(token).getTime());
-        signInDto.setUserDto(userDto);
-
-        return signInDto;
+//        UserDto userDto = new UserDto();
+//        userDto.setId(savedUser.getId());
+//        userDto.setEmail(savedUser.getEmail());
+//        userDto.setName(savedUser.getName());
+//
+//        SignInDto signInDto = new SignInDto();
+//        String token = createAccessToken(savedUser);
+//        signInDto.setAccessToken(token);
+//        signInDto.setAccessExpired(jwtTokenUtil.getExpirationDateFromToken(token).getTime());
+//        signInDto.setUserDto(userDto);
+//
+//        return signInDto;
     }
 
     @Override
@@ -70,18 +72,20 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(signInForm.getPassword(), user.getPassword())) {
             throw new UserPasswordMismatchException("Wrong Password");
         }
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setEmail(user.getEmail());
-        userDto.setName(user.getName());
 
-        SignInDto signInDto = new SignInDto();
-        String token = createAccessToken(user);
-        signInDto.setAccessToken(token);
-        signInDto.setAccessExpired(jwtTokenUtil.getExpirationDateFromToken(token).getTime());
-        signInDto.setUserDto(userDto);
-
-        return signInDto;
+        return mapUserToUserDto(user);
+//        UserDto userDto = new UserDto();
+//        userDto.setId(user.getId());
+//        userDto.setEmail(user.getEmail());
+//        userDto.setName(user.getName());
+//
+//        SignInDto signInDto = new SignInDto();
+//        String token = createAccessToken(user);
+//        signInDto.setAccessToken(token);
+//        signInDto.setAccessExpired(jwtTokenUtil.getExpirationDateFromToken(token).getTime());
+//        signInDto.setUserDto(userDto);
+//
+//        return signInDto;
 
     }
 
@@ -103,5 +107,20 @@ public class UserServiceImpl implements UserService {
     public User getUserByToken(String token) {
         String email = jwtTokenUtil.getUsernameFromToken(token);
         return userRepository.findByEmail(email);
+    }
+
+    public SignInDto mapUserToUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setEmail(user.getEmail());
+        userDto.setName(user.getName());
+
+        SignInDto signInDto = new SignInDto();
+        String token = createAccessToken(user);
+        signInDto.setAccessToken(token);
+        signInDto.setAccessExpired(jwtTokenUtil.getExpirationDateFromToken(token).getTime());
+        signInDto.setUserDto(userDto);
+
+        return signInDto;
     }
 }

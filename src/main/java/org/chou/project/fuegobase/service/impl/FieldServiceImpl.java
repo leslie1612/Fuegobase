@@ -374,7 +374,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Scheduled(fixedRate = 60 * 60 * 1000, initialDelay = 10 * 60 * 1000)
-    public void getLogsfromRedis() {
+    public void getLogsFromRedis() {
         if (getLock()) {
             List<String> logs = redisTemplate.opsForList().range("logs", 0, -1);
 
