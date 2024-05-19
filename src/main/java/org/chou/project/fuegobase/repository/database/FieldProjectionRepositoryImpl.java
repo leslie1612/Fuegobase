@@ -14,6 +14,7 @@ public class FieldProjectionRepositoryImpl implements FieldProjectionRepository 
     @PersistenceContext
     private EntityManager entityManager;
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<FieldProjection> fetchAllFieldsByDocumentId(long documentId) {
         String query = """

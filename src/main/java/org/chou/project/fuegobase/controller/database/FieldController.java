@@ -1,16 +1,11 @@
 package org.chou.project.fuegobase.controller.database;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.FieldData;
 import org.chou.project.fuegobase.data.database.ValueInfoData;
 import org.chou.project.fuegobase.error.ErrorResponse;
-import org.chou.project.fuegobase.repository.database.DomainNameRepository;
-import org.chou.project.fuegobase.service.DashboardService;
 import org.chou.project.fuegobase.service.FieldService;
-import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +15,7 @@ import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections/{collectionId}/documents/{documentId}/fields")
 public class FieldController {
-    private FieldService fieldService;
+    private final FieldService fieldService;
 
     @Autowired
     public FieldController(FieldService fieldService) {
@@ -35,7 +30,7 @@ public class FieldController {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 
@@ -49,7 +44,7 @@ public class FieldController {
                     .status(HttpStatus.OK)
                     .body(new GenericResponse<>(fieldService.getFields(projectId, collectionId, documentId)));
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Field not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
         }
     }
 
@@ -62,7 +57,7 @@ public class FieldController {
                     .status(HttpStatus.OK)
                     .body(new GenericResponse<>(fieldService.updateField(
                             projectId, collectionId, documentId, fieldId, valueId, valueInfoData)));
-        } catch (Exception e) {
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
         }
     }
@@ -79,7 +74,7 @@ public class FieldController {
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Field not found"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Missing map key"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
 
     }
