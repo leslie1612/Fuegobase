@@ -32,7 +32,6 @@ public class DocumentServiceImpl implements DocumentService {
         long id = hashIdUtil.decoded(projectId);
         long cId = hashIdUtil.decoded(collectionId);
 
-        // TODO logic fix
         Collection c = findCollectionByProjectIdAndId(id, cId);
         if (documentRepository.existsByNameAndCollectionId(documentData.getName(), cId)) {
             throw new IllegalArgumentException("Name can not be repeated.");
@@ -65,6 +64,7 @@ public class DocumentServiceImpl implements DocumentService {
         existingDocument.setName(updateDocument.getName());
         documentRepository.save(existingDocument);
         return existingDocument;
+
     }
 
     @Override
@@ -75,7 +75,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         findDocument(id, cId, dId);
         documentRepository.deleteById(dId);
-        log.info("Delete document by : " + documentId + " successfully!");
     }
 
 

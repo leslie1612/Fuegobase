@@ -1,14 +1,10 @@
 package org.chou.project.fuegobase.controller.database;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.data.database.DocumentData;
 import org.chou.project.fuegobase.error.ErrorResponse;
-import org.chou.project.fuegobase.repository.database.DomainNameRepository;
 import org.chou.project.fuegobase.service.DocumentService;
-import org.chou.project.fuegobase.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +14,7 @@ import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/api/v1/databases/projects/{projectId}/collections/{collectionId}/documents")
 public class DocumentController {
-    private DocumentService documentService;
+    private final DocumentService documentService;
 
     @Autowired
     public DocumentController(DocumentService documentService) {
