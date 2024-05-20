@@ -8,6 +8,7 @@ import org.chou.project.fuegobase.repository.security.APIKeyRepository;
 import org.chou.project.fuegobase.service.APIKeyService;
 import org.chou.project.fuegobase.utils.ApiKeyGenerator;
 import org.chou.project.fuegobase.utils.HashIdUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +18,12 @@ import java.util.List;
 
 @Service
 public class APIKeyServiceImpl implements APIKeyService {
-    private APIKeyRepository apiKeyRepository;
-    private ApiKeyGenerator apiKeyGenerator;
-    private ProjectRepository projectRepository;
-    private HashIdUtil hashIdUtil;
+    private final APIKeyRepository apiKeyRepository;
+    private final ApiKeyGenerator apiKeyGenerator;
+    private final ProjectRepository projectRepository;
+    private final HashIdUtil hashIdUtil;
 
+    @Autowired
     public APIKeyServiceImpl(APIKeyRepository apiKeyRepository, ApiKeyGenerator apiKeyGenerator,
                              ProjectRepository projectRepository, HashIdUtil hashIdUtil) {
         this.apiKeyRepository = apiKeyRepository;

@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AWSConfig {
-    
+
     @Value("${s3.access.key}")
     private String s3AccessKey;
     @Value("${s3.secret.key}")

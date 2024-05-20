@@ -4,6 +4,7 @@ import org.chou.project.fuegobase.data.GenericResponse;
 import org.chou.project.fuegobase.error.ErrorResponse;
 import org.chou.project.fuegobase.exception.APIKeyException;
 import org.chou.project.fuegobase.service.APIKeyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.NoSuchElementException;
 public class APIKeyController {
     private final APIKeyService apiKeyService;
 
+    @Autowired
     public APIKeyController(APIKeyService apiKeyService) {
         this.apiKeyService = apiKeyService;
     }

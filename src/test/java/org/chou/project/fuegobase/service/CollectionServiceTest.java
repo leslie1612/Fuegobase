@@ -1,48 +1,41 @@
 package org.chou.project.fuegobase.service;
 
-import org.chou.project.fuegobase.FuegobaseApplication;
 import org.chou.project.fuegobase.model.database.Collection;
 import org.chou.project.fuegobase.repository.database.CollectionRepository;
+import org.chou.project.fuegobase.service.impl.CollectionServiceImpl;
 import org.chou.project.fuegobase.utils.HashIdUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = FuegobaseApplication.class, properties = {
-        "spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false",
-        "spring.jpa.hibernate.ddl-auto=none"
-})
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 public class CollectionServiceTest {
 
-    @Autowired
-    private CollectionService collectionService;
+    @InjectMocks
+    private CollectionServiceImpl collectionService;
 
-    @MockBean
+    @Mock
     private HashIdUtil hashIdUtil;
 
-    @MockBean
+    @Mock
     private CollectionRepository collectionRepository;
 
     private Collection c1, c2;
 
     private List<Collection> fakeCollectionList;
 
-    @Before
+    @BeforeEach
     public void init() {
         c1 = new Collection();
         c1.setHashId("aaa");
