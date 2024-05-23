@@ -1,7 +1,4 @@
-<div style="text-align: center;">  
-	<img src="https://github.com/leslie1612/Fuegobase/blob/main/assets/database128.png" alt="image"/>  
-	<p>Fuegobase</p>  
-</div>
+<center># ![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/database128.png)Fuegobase</center>
 ![Static Badge](https://img.shields.io/badge/AWS-Service-grey?logo=amazonaws&color=orange) ![Static Badge](https://img.shields.io/badge/Backend-SpringBoot-grey?logo=springboot&color=green) 
 ![Static Badge](https://img.shields.io/badge/Frontend-React-grey?logo=react&color=1b81a6)
 
@@ -59,6 +56,6 @@ You can refer to the video of Details
 - Application Load Balancer (ALB)
 - Route 53
 
-### Contact
+## Contact
 🧑‍💻 Chih-Yu, Chou   
 ✉️ leslie20100430@gmail.com
