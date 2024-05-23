@@ -1,4 +1,7 @@
-# Fuegobase
+<div style="text-align: center;">  
+	<img src="https://github.com/leslie1612/Fuegobase/blob/main/assets/database128.png" alt="image"/>  
+	<p>Fuegobase</p>  
+</div>
 ![Static Badge](https://img.shields.io/badge/AWS-Service-grey?logo=amazonaws&color=orange) ![Static Badge](https://img.shields.io/badge/Backend-SpringBoot-grey?logo=springboot&color=green) 
 ![Static Badge](https://img.shields.io/badge/Frontend-React-grey?logo=react&color=1b81a6)
 
@@ -10,36 +13,33 @@ Test user
 - email：fuegobaseadmin@gmail.com   
 - password：fuegobaseadmin  
 
-
-## Table of content
 ## Main Features
 - Database - Store data of different types as required: String, Number, Boolean, Array, Map.
 - Query - Quickly search for data within a Collection using f key.
 - Details - Display the project's API Key and manage the list of authorized domains.
 - Dashboard - Display the project's current storage amount and daily read/write count records.
 
+## Architecture
+![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-infrastructure.png)
+
 ## How to use
 ### Website 
 - Database
-![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-database.gif)
+![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-database-converter.gif)
 - Query
 	- Number
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-number.gif)
+	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-number-converter.gif)
 	- Map
-		![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-map.gif)
+		![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-map-converter.gif)
 - Details
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-details.gif)
+	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-details-converter.gif)
 - Dashboard
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-date-pick.gif)
+	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-date-pick-converter.gif)
 
 ### API calls
 You can refer to the video of Details
 - Include `x-api-key: "your_project_api_key"` in the HTTP request header, and ensure that the website domain is on the authorized list.
 - Obtain the same data (in JSON format) through the API calls as displayed on the interface, allowing users to process and use the data for further applications.
-
-
-## Architecture
-![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-infrastructure.png)
 
 ## Technique
 #### Frameworks and Libraries
@@ -59,7 +59,6 @@ You can refer to the video of Details
 - Application Load Balancer (ALB)
 - Route 53
 
-
 ### Contact
-🧑‍💻 Chih-Yu, Chou
+🧑‍💻 Chih-Yu, Chou   
 ✉️ leslie20100430@gmail.com
