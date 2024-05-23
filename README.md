@@ -1,7 +1,7 @@
-<center># ![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/database128.png)Fuegobase</center>
+<center>![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/database128.png)</center>
+# Fuegobase
 ![Static Badge](https://img.shields.io/badge/AWS-Service-grey?logo=amazonaws&color=orange) ![Static Badge](https://img.shields.io/badge/Backend-SpringBoot-grey?logo=springboot&color=green) 
 ![Static Badge](https://img.shields.io/badge/Frontend-React-grey?logo=react&color=1b81a6)
-
 
 Fuegobase is a service that operates a database without the need for setting up a backend server, achieving CRUD functionality through a visual interface.  
 
@@ -24,14 +24,14 @@ Test user
 - Database
 ![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-database-converter.gif)
 - Query
-	- Number
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-number-converter.gif)
-	- Map
-		![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-map-converter.gif)
-- Details
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-details-converter.gif)
-- Dashboard
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-date-pick-converter.gif)
+	- Number     
+	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-number-converter.gif)    
+	- Map    
+   	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-map-converter.gif)    
+- Details    
+  	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-details-converter.gif)     
+- Dashboard     
+	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-date-pick-converter.gif)     
 
 ### API calls
 You can refer to the video of Details
