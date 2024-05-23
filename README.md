@@ -49,6 +49,6 @@ Technologies and tools used in the project.
 - Route 53
 
 
-### Contact
+## Contact
 🧑‍💻 Chih-Yu, Chou
 ✉️ leslie20100430@gmail.com
