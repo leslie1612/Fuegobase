@@ -4,12 +4,12 @@
 
 Fuegobase is a service that operates a database without the need for setting up a backend server, achieving CRUD functionality through a visual interface.  
 
-Website link：https://fuegobase.store/      
-Front-End repository：https://github.com/leslie1612/Fuegobase-react     
-Test account：       
-|  Email  |  Password  |  
-|  :----: |  :----:  | 
-|  fuegobaseadmin@gmail.com  |  fuegobaseadmin  |  
+- Website link：https://fuegobase.store/      
+- Front-End repository：https://github.com/leslie1612/Fuegobase-react     
+- Test account：       
+	|  Email  |  Password  |  
+	|  :----: |  :----:  | 
+	|  fuegobaseadmin@gmail.com  |  fuegobaseadmin  |  
 
 
 
