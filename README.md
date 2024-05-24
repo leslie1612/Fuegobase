@@ -4,10 +4,14 @@
 
 Fuegobase is a service that operates a database without the need for setting up a backend server, achieving CRUD functionality through a visual interface.  
 
-Website link：https://fuegobase.store/     
-Test user    
-- email：fuegobaseadmin@gmail.com    
-- password：fuegobaseadmin    
+Website link：https://fuegobase.store/      
+Front-End repository：https://github.com/leslie1612/Fuegobase-react     
+Test account：       
+|  Email  |  Password  |  
+|  :----: |  :----:  | 
+|  fuegobaseadmin@gmail.com  |  fuegobaseadmin  |  
+
+
 
 ## Main Features
 - Database - Store data of different types as required: String, Number, Boolean, Array, Map.
@@ -38,12 +42,15 @@ Test user
 
 ## Technique
 #### Frameworks and Libraries
+ ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)  ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)   ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
 - Spring Boot
 - React
 #### Database 
+![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white) 
 - MySQL
 - Redis
 #### Cloud Service (AWS)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white) 
 - Elastic Compute Cloud (EC2)
 - Relational Database Service (RDS)
 - Simple Storage Service (S3)
