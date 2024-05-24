@@ -24,17 +24,17 @@ Fuegobase is a service that operates a database without the need for setting up 
 
 ## How to use
 ### Website 
-- Database       
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-database-converter.gif)     
-- Query
-	- Number     
+#### Database   
+![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-database-converter.gif)   	  
+#### Query    
+- Number     
 	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-number-converter.gif)    
-	- Map    
-   	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-map-converter.gif)    
-- Details    
-  	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-details-converter.gif)     
-- Dashboard     
-	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-date-pick-converter.gif)     
+- Map    
+	![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-query-map-converter.gif)    
+#### Details    
+![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-details-converter.gif)     
+#### Dashboard     
+![image](https://github.com/leslie1612/Fuegobase/blob/main/assets/fuegobase-date-pick-converter.gif)     
 
 ### API calls
 - Include `x-api-key: "your_project_api_key"` in the HTTP request header, and ensure that the website domain is on the authorized list.
